@@ -1,0 +1,6 @@
+function P0 = initial_covariance(cfg)
+d = [cfg.init.pos * [1 1 1], cfg.init.vel * [1 1 1], ...
+     cfg.init.roll_pitch, cfg.init.roll_pitch, cfg.init.yaw, ...
+     cfg.imu.accel_bias_sigma * [1 1 1], cfg.imu.gyro_bias_sigma * [1 1 1], cfg.depth.bias_sigma0];
+P0 = diag(d.^2);
+end

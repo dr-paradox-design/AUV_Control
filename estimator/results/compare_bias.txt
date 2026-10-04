@@ -1,0 +1,15 @@
+Bias-model comparison, N = 20 runs per cell, 600 s scenario, all parameters ASSUMED
+Same seeds across filter models within a truth model (paired comparison).
+
+truth filter |  ANEES  in95% |  h@300  h@360  h@500  h@599 [m RMS] |  bg_end [deg/h]  ba_end [mg]
+   rw     rw |  15.87  98.3% |   0.15   1.49   1.13   0.15        |    2.81          0.0575
+      mean NIS: dvl 3.00, depth 0.97, gnss_pos 3.00, gnss_vel 2.95, heading 1.01
+   rw     gm |  21.26  25.7% |   0.15   1.51   1.15   0.15        |    3.90          0.0828
+      mean NIS: dvl 3.00, depth 0.97, gnss_pos 3.00, gnss_vel 2.95, heading 1.01
+   gm     rw |  15.05  82.6% |   0.15   1.49   1.11   0.15        |    2.46          0.0382
+      mean NIS: dvl 2.99, depth 0.97, gnss_pos 3.00, gnss_vel 2.95, heading 1.01
+   gm     gm |  16.04  98.6% |   0.15   1.47   1.11   0.15        |    2.50          0.0383
+      mean NIS: dvl 3.00, depth 0.97, gnss_pos 3.00, gnss_vel 2.95, heading 1.01
+
+ANEES 95% bounds for N=20, dof 16: [13.62, 18.57]. Expected mean NIS = measurement dimension (dvl 3, depth 1, gnss 3, heading 1).
+Timeline: surface 0-60 s (GNSS), dive 60-110 s, DVL dropout 300-360 s, ascent 500-550 s, surface 550-600 s.
