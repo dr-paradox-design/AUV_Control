@@ -1,15 +1,15 @@
-Bias-model comparison (MATLAB), N = 2 runs per cell, 600 s scenario, all parameters ASSUMED
+Bias-model comparison (MATLAB), N = 20 runs per cell, 600 s scenario, all parameters ASSUMED
 Same seeds across filter models within a truth model (paired comparison).
 
 truth filter |  ANEES  in95% |  h@300  h@360  h@500  h@599 [m RMS] |  bg_end [deg/h]  ba_end [mg]
-   rw     rw |  14.19  95.9% |   0.17   1.45   0.94   0.18        |    2.90          0.0569
-      mean NIS: dvl 3.01 depth 1.01 gnss_pos 3.05 gnss_vel 2.98 heading 0.97
-   rw     gm |  20.36  80.5% |   0.17   1.59   1.04   0.18        |    2.26          0.0760
-      mean NIS: dvl 3.01 depth 1.01 gnss_pos 3.05 gnss_vel 2.98 heading 0.97
-   gm     rw |  14.40  96.4% |   0.17   1.44   0.85   0.18        |    3.22          0.0669
-      mean NIS: dvl 3.01 depth 1.01 gnss_pos 3.05 gnss_vel 2.97 heading 0.97
-   gm     gm |  14.21  94.9% |   0.17   1.44   0.87   0.18        |    2.58          0.0318
-      mean NIS: dvl 3.01 depth 1.01 gnss_pos 3.05 gnss_vel 2.98 heading 0.97
+   rw     rw |  16.02  97.6% |   0.14   1.52   1.40   0.14        |    3.75          0.0647
+      mean NIS: dvl 2.99 depth 0.98 gnss_pos 2.98 gnss_vel 3.04 heading 1.00
+   rw     gm |  20.38  38.6% |   0.14   1.50   1.42   0.14        |    4.03          0.0728
+      mean NIS: dvl 2.99 depth 0.98 gnss_pos 2.98 gnss_vel 3.04 heading 1.00
+   gm     rw |  15.26  92.8% |   0.14   1.55   1.39   0.14        |    3.73          0.0476
+      mean NIS: dvl 2.99 depth 0.98 gnss_pos 2.98 gnss_vel 3.04 heading 1.00
+   gm     gm |  15.89  96.8% |   0.14   1.50   1.40   0.14        |    3.31          0.0397
+      mean NIS: dvl 2.99 depth 0.98 gnss_pos 2.98 gnss_vel 3.04 heading 1.00
 
-ANEES 95% bounds for N=2, dof 16: [9.15, 24.74].
+ANEES 95% bounds for N=20, dof 16: [13.62, 18.57].
 Timeline: surface 0-60 s (GNSS), dive 60-110 s, DVL dropout 300-360 s, ascent 500-550 s, surface 550-600 s.
