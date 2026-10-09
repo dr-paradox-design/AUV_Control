@@ -89,6 +89,45 @@ xlabel('east [m/s]'); ylabel('north [m/s]'); title('Direction turns with depth')
 save_fig(f, out, 'current_profile');
 end
 
+%% NED and body frames (sketch, oblique view)
+f = newfig(1200, 600); ax = axes('Position', [0 0 1 1]); hold on; axis off; xlim([0 24]); ylim([0 12]);
+O = [6.5 8.2]; Bo = [15.5 6.6]; c20 = cos(20 * pi / 180); s20 = sin(20 * pi / 180);
+th = linspace(0, 2 * pi, 200); ex = 3.6 * cos(th); ey = 1.2 * sin(th);
+fill(Bo(1) + c20 * ex - s20 * ey, Bo(2) + s20 * ex + c20 * ey, [0.90 0.93 0.96], 'EdgeColor', [0.6 0.65 0.7], 'LineWidth', 1.2);
+ar(ax, [O(1) Bo(1)], [O(2) Bo(2)], [0.55 0.1 0.1], 2.0);
+text(10.2, 6.75, 'p  (position, in \{n\})', 'Color', [0.55 0.1 0.1], 'Rotation', -10);
+ar(ax, [O(1) O(1) + 4.4], [O(2) O(2)], 'k', 2.4); text(O(1) + 4.6, O(2), 'x_n  (North)');
+ar(ax, [O(1) O(1) - 2.5], [O(2) O(2) - 2.2], 'k', 2.4); text(O(1) - 2.8, O(2) - 2.5, 'y_n  (East)', 'HorizontalAlignment', 'right');
+ar(ax, [O(1) O(1)], [O(2) O(2) - 4.4], 'k', 2.4); text(O(1) + 0.3, O(2) - 4.5, 'z_n  (Down)');
+text(O(1) - 0.3, O(2) + 0.7, '\{n\}', 'HorizontalAlignment', 'right', 'FontSize', 16);
+ar(ax, [Bo(1) Bo(1) + 4.6 * c20], [Bo(2) Bo(2) + 4.6 * s20], blue, 2.4); text(Bo(1) + 4.6 * c20 + 0.2, Bo(2) + 4.6 * s20 + 0.1, 'x_b  (forward)', 'Color', blue);
+ar(ax, [Bo(1) Bo(1) - 2.5], [Bo(2) Bo(2) - 2.2], blue, 2.4); text(Bo(1) - 2.8, Bo(2) - 2.5, 'y_b  (starboard)', 'Color', blue, 'HorizontalAlignment', 'right');
+ar(ax, [Bo(1) Bo(1) + 4.2 * s20], [Bo(2) Bo(2) - 4.2 * c20], blue, 2.4); text(Bo(1) + 4.2 * s20 + 0.3, Bo(2) - 4.2 * c20, 'z_b  (down)', 'Color', blue);
+text(Bo(1) + 0.2, Bo(2) + 0.9, '\{b\}', 'Color', blue, 'FontSize', 16);
+text(15.4, 10.6, 'attitude  R(q):  \{b\} \rightarrow \{n\}', 'HorizontalAlignment', 'center', 'FontSize', 15);
+save_fig(f, out, 'frames_ned_body');
+
+%% surge step response in still water (Wu parameters, thruster lag 0.15 s)
+p = params_plant();
+p.m = 11.5; p.rg = [0; 0; 0.02]; p.rb = [0; 0; 0]; p.Ig = 0.16 * eye(3); p.A = [5.5 12.7 14.57 0.12 0.12 0.12];
+p.Dl = [4.03 6.22 5.18 0.07 0.07 0.07]; p.Dq = [18.18 21.66 36.99 1.55 1.55 1.55];
+p = update_params(p); p.B = p.W;
+Xs = [2 4 6]; cols = {green, blue, red};
+f = newfig(900, 560); hold on; grid on; box on; hl = zeros(1, 3);
+for i = 1:3
+    X = Xs(i);
+    o = simulate([0; 0; 5; 1; 0; 0; 0; zeros(6, 1)], @(t) [X * (1 - exp(-t / p.Tt)); 0; 0; 0; 0; 0], p, 0.002, 10);
+    uss = (-p.Dl(1) + sqrt(p.Dl(1)^2 + 4 * p.Dq(1) * X)) / (2 * p.Dq(1));
+    hl(i) = plot(o.t, o.X(:, 8), 'Color', cols{i});
+    plot([0 10], [uss uss], ':', 'Color', cols{i}, 'LineWidth', 1.2);
+    thmax = 0; for k = 1:50:numel(o.t), e2 = quat_to_euler(o.X(k, 4:7)'); thmax = max(thmax, abs(e2(2))); end
+    fprintf('surge step %g N: final %.4f m/s, steady-state formula %.4f m/s, max pitch %.2f deg\n', X, o.X(end, 8), uss, thmax * 180 / pi);
+end
+xlabel('time [s]'); ylabel('surge speed u [m/s]'); xlim([0 10]); ylim([0 0.55]);
+legend(hl, {'2 N', '4 N', '6 N'}, 'Location', 'southeast');
+title('Surge step response in still water (dotted: steady state)');
+save_fig(f, out, 'surge_step_response');
+
 %% 5. surge drag: thrust needed against speed
 Xu = 4.03; Xuu = 18.18; T = 4 * 40 * cos(pi / 4); u = linspace(0, 2.7, 300);
 kimp = (T - Xu * 1.5) / 1.5^2;
