@@ -1,0 +1,61 @@
+Mutation check of plant_m, 18 deliberate breakages in scratch copies, MATLAB R2025b, 2026-10-09
+(run before test_kinematics.m was added to the suite)
+
+BASELINE OK | baseline (no change)
+CAUGHT | C_RB: sign of m S(S(w) rg) in the off-diagonal block
+         test_matrices: M_RB nu_dot + C_RB nu equals independent Newton-Euler force and moment
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | C_RB: sign of the m S(S(v) rg) term
+         test_matrices: M_RB nu_dot + C_RB nu equals independent Newton-Euler force and moment
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | C_A: one block sign flipped
+         test_matrices: C_A skew-symmetric: max |C + C'|
+         test_matrices: nu_r' C_A nu_r = 0
+         test_matrices: C_A equals the matrix printed in report (3.11)
+         test_conservation: free body: kinetic energy conserved (relative drift over 20 s)
+CAUGHT | dynamics: M_A nu_c_dot term removed
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | dynamics: nu_c_dot loses the -w x (R' v_c) term (the report's bug)
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+         test_invariance: nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2)
+CAUGHT | dynamics: nu_c_dot loses the depth-gradient chain-rule term
+         test_invariance: nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2)
+CAUGHT | dynamics: damping on absolute velocity, not water-relative
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | dynamics: C_RB applied to nu_r instead of nu
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | dynamics: C_A applied to nu instead of nu_r
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | restoring force sign flipped
+         test_analytic: suite raised an error: Index exceeds array bounds.
+         test_cross_check: position, quaternion vs Euler plant (max error, m)
+         test_cross_check: body velocity, quaternion vs Euler plant (max error)
+         test_cross_check: attitude, quaternion vs Euler plant (max error, rad)
+CAUGHT | quaternion kinematics: sign in T(q)
+         test_kinematics: R_dot = R S(omega) with q_dot = 1/2 T(q) omega (2.3, 3.4)
+         test_kinematics: control: R_dot compared with S(omega) R instead of R S(omega)
+         test_conservation: free body: linear momentum conserved (relative drift)
+         test_conservation: free body: angular momentum conserved (relative drift)
+CAUGHT | position rate uses R' instead of R
+         test_conservation: free body: angular momentum conserved (relative drift)
+         test_invariance: yaw rotation: positions equal the rotated still trajectory (max error, m)
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+         test_invariance: nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2)
+CAUGHT | Ekman gradient: sign of the i k_v term
+         test_current: Ekman gradient identity vs finite difference (max error, m/s per m)
+         test_invariance: nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2)
+MISSED | thruster matrix: moment is e x r instead of r x e
+CAUGHT | no quaternion renormalisation after the step
+         test_numerics: quaternion norm stays 1 over 30 s (max | |q| - 1 |)
+CAUGHT | quadratic damping loses the absolute value
+         test_conservation: damped body: energy never increases (max step increase)
+         test_conservation: damped body: energy strictly decreases overall (E_end/E_0 - 1 < 0)
+         test_invariance: yaw rotation: positions equal the rotated still trajectory (max error, m)
+         test_invariance: yaw rotation: body-frame velocities identical
+CAUGHT (after fix) | Euler restoring force: one component sign flipped
+         first run MISSED it: test_cross_check ran with B = W, so the (W - B) term was zero. Fixed by running it with B = W + 2 N; mutant then fails position error 2.84 m, clean code passes at 1e-12
+MISSED | added mass: surge entry too small by 10%
+
+Mutation: 16 caught of 18 tried (15 in the first run, 16 after the cross-check fix)
+Still missed, by design: thruster moment sign (the geometry is an assumed placeholder, only its algebra is tested) and a 10% change of one added-mass parameter (a parameter change, not a code defect; the tests are parametric).
+

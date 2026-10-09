@@ -4,6 +4,7 @@ function r = test_cross_check(p)
 % rotation matrix, the kinematic matrix and the restoring force, which is what this checks.
 S = 'cross-check'; r = new_results();
 pe = p;
+pe.B = pe.W + 2;                       % net positive buoyancy (Wu: B 114.8 N vs W 112.8 N) so the (W - B) terms act
 pe.env = struct('preset', 'ekman', 'Winf', 0.05 + 0.02i, 'W0', 0.25 * exp(1i * 0.3), 'kd', 0.15, 'kv', 0.15);
 tau = @(t) [6; 1.5 * sin(0.6 * t); 2 * sin(0.4 * t); 0.8 * sin(0.9 * t); 0.6 * sin(0.5 * t); 1.2 * sin(0.7 * t) + 0.3];
 dt = 0.002; T = 20;

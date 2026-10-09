@@ -62,12 +62,12 @@ PASS | invariance    | check   | Galilean invariance in a uniform current (max p
 PASS | invariance    | control | control: same check with the M_A nu_c_dot term dropped | err 6.838e+00 | tol 1.0e-09
 PASS | invariance    | check   | nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2) | err 4.113e-07 | tol 1.0e-05
 PASS | invariance    | control | control: nu_c_dot switched off | err 2.013e-01 | tol 1.0e-05
-PASS | cross-check   | check   | position, quaternion vs Euler plant (max error, m) | err 2.476e-12 | tol 1.0e-08
-PASS | cross-check   | check   | body velocity, quaternion vs Euler plant (max error) | err 3.830e-12 | tol 1.0e-08
-PASS | cross-check   | check   | attitude, quaternion vs Euler plant (max error, rad) | err 1.769e-12 | tol 1.0e-08
-PASS | cross-check   | check   | manoeuvre stays away from gimbal lock (max |theta| - 60 deg, rad < 0) | err -2.828e-01 | tol 0.0e+00
-PASS | cross-check   | control | control: Euler plant with one sign flipped in T_Theta (attitude error) | err 1.704e-01 | tol 1.0e-08
-PASS | cross-check   | control | control: Euler plant with the restoring force sign flipped (position error) | err 4.689e+00 | tol 1.0e-08
+PASS | cross-check   | check   | position, quaternion vs Euler plant (max error, m) | err 1.072e-12 | tol 1.0e-08
+PASS | cross-check   | check   | body velocity, quaternion vs Euler plant (max error) | err 3.887e-12 | tol 1.0e-08
+PASS | cross-check   | check   | attitude, quaternion vs Euler plant (max error, rad) | err 1.213e-12 | tol 1.0e-08
+PASS | cross-check   | check   | manoeuvre stays away from gimbal lock (max |theta| - 60 deg, rad < 0) | err -3.024e-01 | tol 0.0e+00
+PASS | cross-check   | control | control: Euler plant with one sign flipped in T_Theta (attitude error) | err 1.596e-01 | tol 1.0e-08
+PASS | cross-check   | control | control: Euler plant with the restoring force sign flipped (position error) | err 5.921e+00 | tol 1.0e-08
 PASS | numerics      | check   | RK4 observed order, smooth RHS, h = 0.05 -> 0.025 (|order - 4|) | err 6.044e-02 | tol 5.0e-01
 PASS | numerics      | check   | RK4 observed order, smooth RHS, h = 0.025 -> 0.0125 (|order - 4|) | err 2.804e-02 | tol 5.0e-01
 PASS | numerics      | control | control: forward Euler through the same order check | err 2.981e+00 | tol 5.0e-01
