@@ -1,0 +1,51 @@
+Second mutation batch for plant_m (14 faults, different from the first batch), MATLAB R2025b, run against all 9 suites
+
+BASELINE OK | baseline
+CAUGHT | M_RB: both CG coupling blocks sign-swapped (still symmetric)
+         test_matrices: M_RB nu_dot + C_RB nu equals independent Newton-Euler force and moment
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | Io without the parallel-axis term
+         test_matrices: M_RB nu_dot + C_RB nu equals independent Newton-Euler force and moment
+CAUGHT | current rotated into the body with R instead of R'
+         test_invariance: Galilean invariance in a uniform current (max position error, m)
+CAUGHT | depth rate taken as body w instead of NED z_dot
+         test_invariance: nu_c_dot: analytic vs finite difference through an Ekman profile (max error, m/s^2)
+CAUGHT | R(q) transposed (sign of the 2 eta S(eps) term)
+         test_kinematics: R(q) equals the Euler-angle matrix (3.3 vs 2.4)
+         test_kinematics: R_dot = R S(omega) with q_dot = 1/2 T(q) omega (2.3, 3.4)
+         test_kinematics: control: R(q) compared with its transpose
+CAUGHT | euler_to_quat: one sign wrong
+         test_kinematics: R(q) equals the Euler-angle matrix (3.3 vs 2.4)
+         test_kinematics: R orthonormal with det 1
+         test_kinematics: R_dot = R S(omega) with q_dot = 1/2 T(q) omega (2.3, 3.4)
+CAUGHT | restoring: rg and rb swapped
+         test_analytic: suite raised an error: Index exceeds array bounds.
+         test_cross_check: position, quaternion vs Euler plant (max error, m)
+         test_cross_check: body velocity, quaternion vs Euler plant (max error)
+CAUGHT | allocation: regularised pseudo-inverse
+         test_thrusters: allocation: B u = tau (max residual)
+         test_thrusters: allocation: adding a null-space term leaves tau unchanged
+CAUGHT | RK4: weights of k3 and k4 swapped
+         test_thrusters: thruster lag: step response (max error, N)
+         test_analytic: linear surge drag: u(t)
+         test_analytic: thrust and quadratic drag: u(t)
+CAUGHT | shear preset: gradient components swapped
+         test_current: preset shear: gradient vs finite difference
+CAUGHT | C_A: rotational block built from linear velocity
+         test_matrices: C_A equals the matrix printed in report (3.11)
+         test_conservation: free body: angular momentum conserved (relative drift)
+CAUGHT | added mass missing from the inertia that is inverted
+         test_analytic: linear surge drag: u(t)
+         test_analytic: control: linear surge drag with added mass forgotten
+         test_analytic: thrust and quadratic drag: u(t)
+CAUGHT | quaternion rate without the factor 1/2
+         test_analytic: undamped roll: period, relative error
+         test_conservation: free body: linear momentum conserved (relative drift)
+         test_conservation: free body: angular momentum conserved (relative drift)
+CAUGHT | Euler plant: current gradient ignored in simulate_euler path (Tzyx row 3 uses sin instead of cos)
+         test_kinematics: det T_Theta = 1/cos(theta) (3.1)
+         test_cross_check: position, quaternion vs Euler plant (max error, m)
+         test_cross_check: body velocity, quaternion vs Euler plant (max error)
+
+Mutation round 2: 14 caught of 14 tried
+

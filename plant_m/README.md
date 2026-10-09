@@ -49,6 +49,12 @@ tolerance; a *control* passes only when the check rejects the wrong input.
   the rotation matrix, kinematic matrix and restoring force only, not the dynamics.
 - Numerics: observed RK4 order, quaternion norm.
 
+An independent check, `tests/kirchhoff_check.py` (Python, numpy only), derives the inertia and
+Coriolis forces from Kirchhoff's equations and compares them with (3.8), (3.9) and (3.11) as
+printed: `python plant_m/tests/kirchhoff_check.py`. Two batches of deliberate faults were run
+against the suites; see `results/mutation_check.txt` (16 of 18 caught) and
+`results/mutation_check_round2.txt` (14 of 14 caught).
+
 **Not implemented or not tested:** the controller and the 50 Hz / 500 Hz multi-rate loop, the
 benchmark against published BlueROV2 data, real thruster geometry, anything about the vehicle's
 shell (cavity water, lift, direction-dependent damping). The sign convention and form of the
