@@ -1,6 +1,13 @@
 plant_m test results (MATLAB 25.2.0.3177638 (R2025b) Update 5)
-checks passed: 47 of 47; failure controls that failed as intended: 17 of 17
+checks passed: 52 of 52; failure controls that failed as intended: 19 of 19
 
+PASS | kinematics    | check   | R(q) equals the Euler-angle matrix (3.3 vs 2.4) | err 5.551e-16 | tol 1.0e-12
+PASS | kinematics    | check   | R orthonormal with det 1 | err 1.998e-15 | tol 1.0e-12
+PASS | kinematics    | check   | R_dot = R S(omega) with q_dot = 1/2 T(q) omega (2.3, 3.4) | err 2.010e-10 | tol 1.0e-08
+PASS | kinematics    | check   | q' T(q) omega = 0, so the norm is preserved (3.4) | err 0.000e+00 | tol 1.0e-14
+PASS | kinematics    | check   | det T_Theta = 1/cos(theta) (3.1) | err 4.441e-16 | tol 1.0e-12
+PASS | kinematics    | control | control: R_dot compared with S(omega) R instead of R S(omega) | err 1.049e-01 | tol 1.0e-08
+PASS | kinematics    | control | control: R(q) compared with its transpose | err 1.791e+00 | tol 1.0e-12
 PASS | matrices      | check   | M_RB and M_A symmetric | err 0.000e+00 | tol 1.0e-12
 PASS | matrices      | check   | M_RB, M_A and M = M_RB + M_A positive definite (-min eig < 0) | err -1.200e-01 | tol 0.0e+00
 PASS | matrices      | check   | C_RB skew-symmetric: max |C + C'| | err 0.000e+00 | tol 1.0e-12

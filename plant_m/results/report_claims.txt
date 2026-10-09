@@ -1,0 +1,26 @@
+net surge thrust 4*40*cos45 = 113.1 N (report: 113 N)
+top speed, quadratic drag only (eq. 3.12 as printed): 2.495 m/s
+top speed, with Wu linear Xu = -4.03: 2.386 m/s (report: 2.39)
+Xu|u| implied by 1.5 m/s, with linear term: 47.6 (report: -47.6), ratio to 18.18: 2.62 (report: 2.6)
+Xu|u| implied by 1.5 m/s, quadratic only: 50.3
+maximum righting moment W*BG = 2.256 N m (report: 2.26)
+Munk crossover, max Munk moment 1/2 (Zwd-Xud) U^2 = W*BG: U = 0.705 m/s (report: 0.71)
+small-angle instability threshold, (Zwd-Xud) U^2 = W*BG: U = 0.499 m/s
+pitch scan, B = 112.8 N, 2 deg initial pitch, surge thrust holds speed U, 60 s: max |theta| in degrees
+   U = 0.30 m/s: max |theta| =    2.3 deg, final |theta| =    0.3 deg
+   U = 0.40 m/s: max |theta| =    3.3 deg, final |theta| =    0.4 deg
+   U = 0.50 m/s: max |theta| =    5.5 deg, final |theta| =    0.5 deg
+   U = 0.60 m/s: max |theta| =   20.7 deg, final |theta| =   16.2 deg
+   U = 0.71 m/s: max |theta| =   46.8 deg, final |theta| =   45.3 deg
+   U = 0.80 m/s: max |theta| =   62.6 deg, final |theta| =    8.6 deg
+   U = 0.90 m/s: max |theta| =   90.0 deg, final |theta| =   18.3 deg
+   U = 1.00 m/s: max |theta| =   90.0 deg, final |theta| =   55.1 deg
+pitch scan, B = 114.8 N, 2 deg initial pitch, surge thrust holds speed U, 60 s: max |theta| in degrees
+   U = 0.30 m/s: max |theta| =   11.4 deg, final |theta| =   10.9 deg
+   U = 0.40 m/s: max |theta| =   16.0 deg, final |theta| =   14.8 deg
+   U = 0.50 m/s: max |theta| =   22.8 deg, final |theta| =   16.9 deg
+   U = 0.60 m/s: max |theta| =   33.0 deg, final |theta| =   13.6 deg
+   U = 0.71 m/s: max |theta| =   49.7 deg, final |theta| =   25.6 deg
+   U = 0.80 m/s: max |theta| =   62.9 deg, final |theta| =   31.5 deg
+   U = 0.90 m/s: max |theta| =   90.0 deg, final |theta| =   80.6 deg
+   U = 1.00 m/s: max |theta| =   90.0 deg, final |theta| =    5.9 deg

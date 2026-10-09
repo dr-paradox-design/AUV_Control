@@ -9,7 +9,7 @@ addpath(fullfile(fileparts(here), 'config'));
 setup_plant_paths();
 p = params_plant();
 
-suites = {'test_matrices', 'test_thrusters', 'test_current', 'test_analytic', ...
+suites = {'test_kinematics', 'test_matrices', 'test_thrusters', 'test_current', 'test_analytic', ...
           'test_conservation', 'test_invariance', 'test_cross_check', 'test_numerics'};
 r = new_results(); info = struct();
 for i = 1:numel(suites)
