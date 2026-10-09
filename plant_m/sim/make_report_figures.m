@@ -128,6 +128,39 @@ legend(hl, {'2 N', '4 N', '6 N'}, 'Location', 'southeast');
 title('Surge step response in still water (dotted: steady state)');
 save_fig(f, out, 'surge_step_response');
 
+%% roll free decay in still water (Wu parameters, no thrust, open loop)
+phi0 = 10 * pi / 180;
+o = simulate([0; 0; 5; euler_to_quat(phi0, 0, 0); zeros(6, 1)], @(t) zeros(6, 1), p, 0.002, 20);
+phi = zeros(size(o.t)); for k = 1:numel(phi), e2 = quat_to_euler(o.X(k, 4:7)'); phi(k) = e2(1); end
+idx = find(phi(1:end-1) < 0 & phi(2:end) >= 0);
+tc = o.t(idx) - phi(idx) .* (o.t(idx + 1) - o.t(idx)) ./ (phi(idx + 1) - phi(idx));
+Tund = 2 * pi * sqrt((p.Ig(1) + p.A(4)) / (p.W * p.rg(3)));
+fprintf('roll decay: first period %.3f s, undamped formula %.3f s, amplitude after 20 s %.2f deg\n', tc(2) - tc(1), Tund, max(abs(phi(o.t > 18))) * 180 / pi);
+f = newfig(900, 520); hold on; grid on; box on;
+plot(o.t, phi * 180 / pi, 'Color', blue); plot([0 20], [0 0], 'k:', 'LineWidth', 1);
+xlabel('time [s]'); ylabel('roll angle \phi [deg]'); xlim([0 20]); ylim([-11 11]);
+title(sprintf('Roll free decay from 10 deg (first period %.2f s)', tc(2) - tc(1)));
+save_fig(f, out, 'roll_free_decay');
+
+%% estimator: horizontal position error with a DVL dropout (estimator_m, one run, seed 1)
+est = fullfile(fileparts(root), 'estimator_m'); addpath(est, fullfile(est, 'lib'));
+rr = run_once(1, 'rw', 'rw');
+eh = sqrt(sum(rr.err(:, 1:2).^2, 2)); s3 = 3 * sqrt(sum(rr.sd(:, 1:2).^2, 2));
+at = @(tt) find(rr.t >= tt, 1);
+fprintf('estimator: horizontal error %.2f m at 300 s, %.2f m at 360 s, %.2f m at 500 s, max %.2f m; 3-sigma at 360 s %.2f m\n', ...
+        eh(at(300)), eh(at(360)), eh(at(500)), max(eh), s3(at(360)));
+f = newfig(1000, 540); hold on; grid on; box on; ymax = 1.1 * max(s3(rr.t > 60));
+patch([300 360 360 300], [0 0 ymax ymax], [0.98 0.86 0.86], 'EdgeColor', 'none');
+patch([0 60 60 0], [0 0 ymax ymax], [0.88 0.95 0.88], 'EdgeColor', 'none'); patch([550 600 600 550], [0 0 ymax ymax], [0.88 0.95 0.88], 'EdgeColor', 'none');
+h2 = plot(rr.t, s3, '--', 'Color', grey); h1 = plot(rr.t, eh, 'Color', blue);
+text(330, 0.93 * ymax, 'DVL dropout', 'HorizontalAlignment', 'center', 'Color', red);
+text(30, 0.93 * ymax, 'GNSS', 'HorizontalAlignment', 'center', 'Color', green); text(575, 0.93 * ymax, 'GNSS', 'HorizontalAlignment', 'center', 'Color', green);
+xlabel('time [s]'); ylabel('horizontal position error [m]'); xlim([0 600]); ylim([0 ymax]);
+legend([h1 h2], {'error (one simulated run)', '3\sigma from the filter'}, 'Location', 'west');
+title('Estimator position error over a 600 s simulated dive');
+set(gca, 'Layer', 'top');
+save_fig(f, out, 'estimator_position_error');
+
 %% 5. surge drag: thrust needed against speed
 Xu = 4.03; Xuu = 18.18; T = 4 * 40 * cos(pi / 4); u = linspace(0, 2.7, 300);
 kimp = (T - Xu * 1.5) / 1.5^2;
