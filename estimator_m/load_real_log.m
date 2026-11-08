@@ -1,8 +1,18 @@
-function [tr, imu, meas, x0, P0, raw] = load_real_log(matfile, cfg, use_zero_vel)
+function [tr, imu, meas, x0, P0, raw] = load_real_log(matfile, cfg, use_zero_vel, drop_dvl)
 % LOAD_REAL_LOG  Filter inputs from real_data/export_mat.py output (body FRD, world NED).
 % tr has t, dt, n only (no truth). x0 starts at the origin with the VN-200 attitude.
+% drop_dvl (optional, m x 2, seconds from the log start): DVL samples inside these windows are removed
+% before anything else, as artificial outages for benchmarking.
 if nargin < 3, use_zero_vel = false; end
+if nargin < 4, drop_dvl = zeros(0, 2); end
 raw = load(matfile);
+td = (double(raw.dvl_k(:)) - 1) * raw.dt;
+keep = true(size(td));
+for i = 1:size(drop_dvl, 1)
+    keep(td >= drop_dvl(i, 1) & td < drop_dvl(i, 2)) = false;
+end
+raw.dvl_k = raw.dvl_k(keep);
+raw.dvl_z = raw.dvl_z(keep, :);
 tr.dt = raw.dt; tr.n = double(raw.n);
 tr.t = (0:tr.n)' * tr.dt;
 

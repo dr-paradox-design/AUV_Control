@@ -168,6 +168,16 @@ Details: `estimator_m/README.md`, "Running on recorded data".
   - The datasheet accelerometer noise is about 20× too optimistic for this log.
   - A 99 % innovation gate makes the filter diverge: it rejects 15 % of DVL samples when level, drifts, and
     rejects more.
+- **Robust update instead of gating.** Outliers are down-weighted so their NIS is capped at the 99 % value.
+  No data is dropped, so it does not diverge. Against the references it scores 0.95 m RMS.
+- **Bridging DVL outages** (artificial 2–20 s outages):
+  - Pure inertial error grows about as ½ · 0.04 m/s² · t²: 0.08 m after 2 s, 1.9 m after 10 s, 8.4 m after
+    20 s.
+  - On this slow, unpowered log, "velocity ≈ 0" does as well as any filter, because the vehicle hardly moved.
+  - The DVL carries position, so reducing DVL dropouts and adding the thrust-model aid matter more than the
+    choice between filters.
+- **robot_localization's two output gaps** happen while all of its inputs keep arriving. The first ends with
+  a 2.4 m jump that the DVL-aided motion does not support; the second ends frozen.
 - **Still not decided:** accuracy. Both references use every DVL sample, so agreement favours ungated
   filters. The status stays *Proposed* until a log with ground truth exists.
 
@@ -184,7 +194,8 @@ Details: `estimator_m/README.md`, "Running on recorded data".
 4. [x] Ran on the 2026-11-05 log and compared: `real_data/compare_eskf.py`, `real_data/results/eskf_table.txt`.
 5. [ ] Record a powered reference log: start and end at a marked point, measured waypoints, camera topics,
    magnetometer output.
-6. [ ] Investigate the `/odometry/filtered` gaps (797.0–825.6 s, 861.9–957.5 s).
+6. [~] Investigate the `/odometry/filtered` gaps (797.0–825.6 s, 861.9–957.5 s). Inputs were continuous,
+   so the node stopped publishing (see `real_data/README.md`). Its cause needs the node's config and logs.
 7. [ ] Decide on the switch from `robot_localization` (update this ADR to *Accepted* or *Superseded*).
 8. [ ] With the reference log, decide DVL outlier handling: no gate, a loose gate (99.99 %, cap 3), or a
    robust heavy-tailed DVL update. Re-tune noise with NIS on a powered run.

@@ -1,0 +1,12 @@
+14 artificial DVL outages of 5 s (210-1235 s). Error = |estimator displacement - DVL dead-reckoning displacement| over each window.
+Vehicle motion per window (DVL dead reckoning): median 0.12 m, max 1.38 m.
+
+                                   median_err_m  p90_err_m  max_err_m  mean_err_%_of_motion
+estimator                                                                                  
+python_E (99% gate)                       0.131      0.482      1.267                  89.1
+python_E_ungated                          0.131      0.485      1.267                  89.5
+eskf_ungated (outages)                    0.475      1.819      2.202                 270.1
+eskf_ungated_zv (outages)                 0.135      0.432      1.222                  89.2
+eskf_robust_zv (outages)                  0.135      0.433      1.223                  89.0
+eskf_ungated_zv (full DVL, floor)         0.005      0.027      0.033                   3.7
+eskf_robust_zv (full DVL, floor)          0.006      0.100      0.120                  12.3

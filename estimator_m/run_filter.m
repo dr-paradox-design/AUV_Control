@@ -5,7 +5,9 @@ function res = run_filter(tr, imu, meas, bd, cfg, filter_bias, x0, P0, log_every
 % Truth-free mode: if tr has no field p (recorded data), err and nees are NaN.
 % opts (optional): opts.gate.<sensor> = chi-square threshold on NIS (default Inf, no gating);
 %                  opts.max_consecutive_rejects (default Inf): accept anyway after this many rejections
-%                  in a row, so the filter cannot lock itself out.
+%                  in a row, so the filter cannot lock itself out;
+%                  opts.robust.<sensor> = NIS cap: inflate R so the NIS of an outlier equals the cap
+%                  (default Inf, off). See eskf_update.
 if nargin < 9 || isempty(log_every), log_every = 10; end
 names = {'dvl', 'depth', 'gnss_pos', 'gnss_vel', 'heading', 'zero_vel'};
 if nargin < 10 || isempty(use), use = names; end
@@ -25,11 +27,13 @@ sched = sortrows(sched, [1 2]);
 first = ones(tr.n + 2, 1) * (size(sched, 1) + 1);
 for r = size(sched, 1):-1:1, first(sched(r, 1)) = r; end
 
-gate = struct(); consec = struct(); res.rejected = struct(); res.accepted = struct();
+gate = struct(); robust = struct(); consec = struct();
+res.rejected = struct(); res.accepted = struct(); res.downweighted = struct();
 for s = 1:numel(names)
-    gate.(names{s}) = Inf;
+    gate.(names{s}) = Inf; robust.(names{s}) = Inf;
     if isfield(opts, 'gate') && isfield(opts.gate, names{s}), gate.(names{s}) = opts.gate.(names{s}); end
-    consec.(names{s}) = 0; res.rejected.(names{s}) = 0;
+    if isfield(opts, 'robust') && isfield(opts.robust, names{s}), robust.(names{s}) = opts.robust.(names{s}); end
+    consec.(names{s}) = 0; res.rejected.(names{s}) = 0; res.downweighted.(names{s}) = 0;
 end
 
 Q = eskf_Q(tr.dt, cfg, filter_bias);
@@ -62,9 +66,10 @@ for k = 1:tr.n + 1                   % sample index (1-based)
         z = meas.(name)(sched(r, 3)).z;
         g = gate.(name);
         if consec.(name) >= opts.max_consecutive_rejects, g = Inf; end
-        [x, P, nv, ok] = eskf_update(x, P, name, z, w_ib, cfg, g);
+        [x, P, nv, ok, lam] = eskf_update(x, P, name, z, w_ib, cfg, g, robust.(name));
         nis.(name)(sched(r, 3)) = nv;
         res.accepted.(name)(sched(r, 3)) = ok;
+        if lam > 1, res.downweighted.(name) = res.downweighted.(name) + 1; end
         if ok
             consec.(name) = 0;
         else

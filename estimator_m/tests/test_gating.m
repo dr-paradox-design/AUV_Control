@@ -15,6 +15,20 @@ assert(~a3 && n3 > 11.34, 'large innovation must be rejected');
 assert(isequal(x3, x) && isequal(P3, P), 'a rejected update must leave x and P unchanged');
 fprintf('  gate = Inf matches the ungated update; NIS %.0f rejected at 11.34 with x, P unchanged\n', n3);
 
+% robust update: off by default; an outlier is used but with inflated noise so its NIS equals the cap
+[x4, P4, n4, a4, l4] = eskf_update(x, P, 'dvl', z_ok, w, cfg, Inf, Inf);
+assert(l4 == 1 && isequal(x4, x1) && isequal(P4, P1), 'robust off must equal the plain update');
+zo = [5; -3; 2];
+[x5, P5, n5, a5, l5] = eskf_update(x, P, 'dvl', zo, w, cfg, Inf, 11.34);
+[h, H, Rm] = eskf_meas('dvl', x, w, cfg);
+nis_eff = (zo - h)' * ((H * P * H' + l5 * Rm) \ (zo - h));
+assert(a5 && l5 > 1 && abs(nis_eff - 11.34) < 1e-6 * 11.34, sprintf('robust NIS %.6f', nis_eff));
+x6 = eskf_update(x, P, 'dvl', zo, w, cfg);
+assert(norm(x5.v - x.v) < norm(x6.v - x.v), 'robust update must move the state less than the plain one');
+assert(all(diag(P5) <= diag(P) + 1e-12), 'covariance must not grow in an update');
+fprintf('  robust: NIS %.0f capped to 11.34 (lambda %.0f); velocity step %.3f vs %.3f m/s plain\n', ...
+        n5, l5, norm(x5.v - x.v), norm(x6.v - x.v));
+
 % truth-free run: no tr.p, so err and nees are NaN; state and covariance are still logged
 tr.dt = 0.01; tr.n = 50; tr.t = (0:tr.n)' * tr.dt;
 imu.dtheta = zeros(tr.n, 3);

@@ -26,6 +26,7 @@ ESKF in `estimator_m/`. See `../decisions/ADR-001-localization-architecture.md` 
 | `compare_variants.py` | DVL dead reckoning, metrics, `results/variants_table.txt` and `results/variants_comparison.png` |
 | `export_mat.py` | Exports the log for the MATLAB ESKF: FLU/ENU → FRD/NED, IMU increments on an 80 Hz grid (`data/real_log.mat`) |
 | `compare_eskf.py` | ESKF variants vs robot_localization, variant E and DVL dead reckoning: `results/eskf_table.txt`, `results/eskf_comparison.png` |
+| `outage_benchmark.py` | Artificial DVL outages of 2–20 s; scores how well each filter bridges them: `results/outage_table_<L>s.txt` |
 | `requirements.txt` | Python packages |
 | `results/` | Committed outputs of the run below |
 
@@ -68,9 +69,25 @@ cd real_data && python compare_variants.py
 | IMU `/imu/data` | 80 Hz, largest gap 0.39 s |
 | Depth `/pressure/depth` | 50 Hz; 0–0.81 m (near the surface the whole time); median step between samples 6.8 cm |
 | DVL `/dvl/raw` | ≈7.6 Hz (median Δt 0.13 s); 15 gaps > 1 s, longest 49.5 s (141.4–190.9 s); covariance always 0.01 m²/s² |
-| `/odometry/filtered` | ≈54 Hz; gaps 797.0–825.6 s and 861.9–957.5 s, cause unknown; yaw equals IMU yaw to ±0.07° (5–95 %) |
+| `/odometry/filtered` | ≈54 Hz; yaw equals IMU yaw to ±0.07° (5–95 %); two output gaps (below) |
 | Thrusters | all 8 channels 1500 µs; `armed` false throughout |
 | Magnetometer | **no topic recorded** |
+
+### robot_localization stops publishing while its inputs keep coming
+
+`/odometry/filtered` is silent during 797.0–825.6 s and 861.9–957.5 s. During both gaps every input keeps
+arriving: `/imu/data`, `/dvl/raw`, `/pressure/depth` and the Pico topics, each with its largest message gap
+at 0.39 s or less. So the gaps come from the node, not from its sensors.
+
+| Gap | Odom position change across the gap (E, N) | ESKF motion during the gap (E, N) | DVL speed during the gap (median / max) |
+|---|---|---|---|
+| 797.0–825.6 s | (−0.18, −3.09) m | (−0.29, −0.70) m | 0.04 / 0.35 m/s |
+| 861.9–957.5 s | (0.00, 0.00) m, resumes exactly where it stopped | (−0.05, 0.55) m | 0.02 / 0.30 m/s |
+
+- **The first gap ends with a jump of about 2.4 m** that the DVL-aided motion does not support.
+- **The second gap ends with the estimate frozen**, although the vehicle moved about half a metre.
+- **The cause is not known.** The node's configuration is not in the log, and `robot_localization` is not
+  installed on the analysis machine (ROS 2 Humble is), so it could not be re-run on the bag.
 
 ### Where the log disagrees with the assumed values in `estimator/config.py`
 
@@ -131,6 +148,10 @@ the VN-200 yaw as a heading aid. Full details, tuning and caveats are in `../est
   consistent DVL NIS (median 2.12, target 2.37).
 - **Gating at 99 % makes the ESKF diverge.** It rejects 15 % of DVL samples even when the vehicle is level,
   drifts, then rejects more.
+- **A robust update avoids the spiral.** It caps each outlier's NIS instead of rejecting it, and scores
+  0.95 m RMS against robot_localization.
+- **The DVL carries position.** In artificial outages, pure inertial drift reaches 0.08 m after 2 s, 1.9 m
+  after 10 s and 8.4 m after 20 s. Full tables are in `../estimator_m/README.md`.
 - **The unexplained window is explained.** Variant E's 1050–1150 s window was also gating: rerun without
   gating, E moves [0.23, −0.31] m there, the same as DVL dead reckoning ([0.23, −0.33]).
 

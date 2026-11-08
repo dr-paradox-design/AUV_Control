@@ -27,6 +27,7 @@ lever arms.
 | `run_once.m`, `run_compare_bias.m` | One Monte Carlo run; RW vs GM comparison |
 | `tests/` | `run_all_tests.m` and the tests; `reference_python.mat` for the cross-check |
 | `config_real_log.m`, `load_real_log.m`, `run_real_log.m` | Recorded-data path: log-supported config, loader, variants (see "Running on recorded data") |
+| `run_outage_benchmark.m` | Artificial DVL outages on the recorded log (with `../real_data/outage_benchmark.py`) |
 
 ## How to run (MATLAB)
 
@@ -101,7 +102,11 @@ identical, and the Python cross-check still matches to 1.4e-14.
 - `eskf_update`: an optional NIS gate; a rejected update leaves `x` and `P` unchanged.
 - `eskf_meas`: `zero_vel`, a "velocity ≈ 0" pseudo-measurement. It is an assumption about slow or unpowered
   motion, not a sensor.
-- `tests/test_gating.m` (new) and a `zero_vel` row in `test_jacobians`. **Fast tests: 4 of 4 pass on Octave 6.4.**
+- `eskf_update`: an optional robust mode (`opts.robust.<sensor>`). When a measurement's NIS exceeds the
+  cap, its noise is inflated just enough to bring the NIS down to the cap. The measurement is used, never
+  dropped, so the gating spiral cannot start.
+- `tests/test_gating.m` (new) and a `zero_vel` row in `test_jacobians`. `test_gating` also
+  checks the robust mode. **Fast tests: 4 of 4 pass on Octave 6.4.**
 - `../compat/octave6/rng.m`: Octave < 7 has no `rng`. `setup_paths` adds this stand-in only when `rng` is missing.
 
 **How to run**
@@ -145,6 +150,7 @@ cd ../real_data && python ekf_localization.py && python compare_eskf.py
 | ESKF, tuned, 99 % gate, no zero-vel | 434.5 | 27.09 m | 24.01 m | 117.3 m | 0.49° / 0.29° / 1.29° |
 | ESKF, tuned, 99 % gate, zero-vel | 137.7 | 2.11 m | 2.71 m | 0.14 m | 0.45° / 0.28° / 1.28° |
 | ESKF, tuned, 99.99 % gate (cap 3), zero-vel | 88.9 | 0.90 m | 0.88 m | 0.16 m | 0.37° / 0.28° / 1.19° |
+| ESKF, tuned, robust (NIS capped at 99 %), zero-vel | 94.2 | 0.95 m | 0.86 m | 0.15 m | 0.38° / 0.28° / 1.20° |
 | Python EKF, variant E (`../real_data`) | 85.6 | 0.53 m | 0.62 m | 0.08 m | — |
 | robot_localization | 87.0 | — | — | 0.17 m | — |
 | DVL dead reckoning | 81.8 | — | — | (gap skipped) | — |
@@ -173,3 +179,33 @@ cd ../real_data && python ekf_localization.py && python compare_eskf.py
 - **The heading comes from the VN-200.** It is the VN-200's yaw, so yaw is not independent of it. A logged
   magnetometer is needed for that.
 - **Unchanged assumptions:** latitude (20°), gyro noise and bias values are still ASSUMED.
+
+**Robust update instead of gating.**
+- **What it does:** no sample is dropped. 873 DVL samples (9.8 %) and 2,344 depth samples are down-weighted,
+  and the median NIS stays consistent (DVL 2.06).
+- **Against the references** it scores 0.95 m and 0.86 m RMS, about the same as the loose gate. That is
+  worse than ungated, which the "references use every DVL sample" caveat predicts.
+- **Which is better for accuracy is still open.** It needs ground truth.
+
+**How long can the IMU bridge a DVL outage?** (`../real_data/outage_benchmark.py`, `run_outage_benchmark(L)`)
+DVL samples are removed in 13–14 windows of L seconds, one every 60 s, wherever the real DVL stream is
+continuous. The error is the horizontal difference between each filter's displacement over the window and
+DVL dead reckoning over the same window, which uses the removed data.
+
+| Outage | Vehicle motion (median) | Pure inertial ESKF | ESKF + "velocity ≈ 0" | ESKF robust + "velocity ≈ 0" | Python E | ESKF with DVL (floor) |
+|---|---|---|---|---|---|---|
+| 2 s | 0.05 m | 0.08 m | 0.05 m | 0.05 m | 0.05 m | 0.004 m |
+| 5 s | 0.12 m | 0.48 m | 0.14 m | 0.14 m | 0.13 m | 0.005 m |
+| 10 s | 0.15 m | 1.86 m | 0.14 m | 0.14 m | 0.15 m | 0.008 m |
+| 20 s | 0.33 m | 8.44 m | 0.33 m | 0.33 m | 0.31 m | 0.018 m |
+
+(Median errors. The p90 and max are in `../real_data/results/outage_table_<L>s.txt`.)
+
+- **Pure inertial error grows about as t².** It is roughly ½ · 0.04 m/s² · t², which corresponds to a
+  residual acceleration error such as a 0.25° tilt error or accelerometer bias.
+- **On this slow, unpowered log, "velocity ≈ 0" wins at every length.** But its error is about 75–95 % of the
+  real motion, so it is "assume the vehicle stopped", not navigation.
+- **At 0.5 m/s, "assume stopped" is wrong by 0.5 m per second.** By extrapolation the pure inertial solution
+  would be better for outages up to roughly 20 s. That is not measured: there is no powered log.
+- **The DVL carries the position estimate.** Fewer DVL dropouts (15 gaps > 1 s here, longest 49.5 s) is
+  worth more than any filter change. A thrust-model aid (`plant_m/`) is the route for longer outages.

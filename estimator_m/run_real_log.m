@@ -10,9 +10,11 @@ function run_real_log(variants)
 %   eskf_gated         tuned, 99% chi-square gating, no zero-velocity aid
 %   eskf_gated_zv      tuned, gated, zero-velocity aid when the DVL is silent > 0.5 s
 %   eskf_loosegate_zv  tuned, 99.99% gate, accept after 3 rejections in a row, zero-velocity aid
+%   eskf_robust_zv     tuned, no gate; outliers down-weighted so their NIS is capped at the 99% value
 root = fileparts(fileparts(mfilename('fullpath')));
 data = fullfile(root, 'real_data', 'data');
-all_variants = {'eskf_datasheet_zv', 'eskf_ungated_zv', 'eskf_gated', 'eskf_gated_zv', 'eskf_loosegate_zv'};
+all_variants = {'eskf_datasheet_zv', 'eskf_ungated_zv', 'eskf_gated', 'eskf_gated_zv', 'eskf_loosegate_zv', ...
+                'eskf_robust_zv'};
 if nargin < 1 || isempty(variants), variants = all_variants; end
 
 tuned = config_real_log();
@@ -21,6 +23,7 @@ gated.gate = struct('dvl', 11.34, 'depth', 6.63, 'heading', 6.63);   % chi2 99%:
 gated.max_consecutive_rejects = 10;
 loose.gate = struct('dvl', 21.11, 'depth', 15.14, 'heading', 15.14); % chi2 99.99%
 loose.max_consecutive_rejects = 3;
+robust.robust = struct('dvl', 11.34, 'depth', 6.63, 'heading', 6.63);  % NIS caps at chi2 99%
 log_every = 4;                                                           % 20 Hz output
 
 for i = 1:numel(variants)
@@ -30,6 +33,7 @@ for i = 1:numel(variants)
     opts = gated;
     if strcmp(v, 'eskf_ungated_zv'), opts = struct(); end
     if strcmp(v, 'eskf_loosegate_zv'), opts = loose; end
+    if strcmp(v, 'eskf_robust_zv'), opts = robust; end
     [tr, imu, meas, x0, P0, raw] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
     tic;
     res = run_filter(tr, imu, meas, [], cfg, 'rw', x0, P0, log_every, [], opts);
@@ -43,7 +47,8 @@ for i = 1:numel(variants)
     for j = 1:numel(s)
         nv = res.nis.(s{j});
         if isempty(nv), continue; end
-        fprintf('  %-8s n=%5d  rejected %5d  median NIS %.3f\n', s{j}, numel(nv), res.rejected.(s{j}), median(nv));
+        fprintf('  %-8s n=%5d  rejected %5d  down-weighted %5d  median NIS %.3f\n', s{j}, numel(nv), ...
+                res.rejected.(s{j}), res.downweighted.(s{j}), median(nv));
     end
     fprintf('  final accel bias [%.3f %.3f %.3f] m/s^2, gyro bias [%.3f %.3f %.3f] deg/s, depth bias %.3f m\n', ...
             res.x(end, 11:13), res.x(end, 14:16) * 180 / pi, res.x(end, 17));
