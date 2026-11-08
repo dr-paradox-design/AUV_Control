@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# real_data: recorded logs and derived data stay out of git (the bag alone is 132 MB)
+real_data/data/
+*.mcap
+*.db3

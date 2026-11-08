@@ -1,0 +1,6 @@
+rosbags
+numpy
+pandas
+pyarrow
+scipy
+matplotlib

@@ -1,0 +1,6 @@
+A_original: rejected depth 0/62485, DVL 0/8914; median DVL NIS 0.240 (chi2(3) median 2.37); depth sigma 0.020 m; zero-velocity updates 0
+B_timing_fix: rejected depth 0/62485, DVL 0/8914; median DVL NIS 0.343 (chi2(3) median 2.37); depth sigma 0.020 m; zero-velocity updates 0
+C_lever_gate_tuned: rejected depth 2036/62485, DVL 217/8914; median DVL NIS 0.491 (chi2(3) median 2.37); depth sigma 0.080 m; zero-velocity updates 0
+D_plus_accel_bias: rejected depth 1808/62485, DVL 237/8914; median DVL NIS 0.184 (chi2(3) median 2.37); depth sigma 0.080 m; zero-velocity updates 0; final accel bias (m/s^2) {'bax': 0.005, 'bay': -0.003, 'baz': 0.116}
+E_C_plus_stale_zupt: rejected depth 2030/62485, DVL 226/8914; median DVL NIS 0.491 (chi2(3) median 2.37); depth sigma 0.080 m; zero-velocity updates 273
+F_D_plus_stale_zupt: rejected depth 1809/62485, DVL 222/8914; median DVL NIS 0.184 (chi2(3) median 2.37); depth sigma 0.080 m; zero-velocity updates 273; final accel bias (m/s^2) {'bax': 0.005, 'bay': -0.003, 'baz': 0.116}
