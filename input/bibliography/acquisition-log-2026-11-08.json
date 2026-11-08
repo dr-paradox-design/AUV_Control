@@ -1,0 +1,266 @@
+{
+ "skill": "acquire-sources",
+ "date": "2026-11-08",
+ "literaturguide": "input/bibliography/literaturguide.md",
+ "grade_scope": [
+  "A",
+  "B"
+ ],
+ "library": "~/research-library",
+ "url_resolution": "oa_pdf from arXiv / OpenAlex best_oa_location; Unpaywall not used (needs a contact email)",
+ "totals": {
+  "worklist": 17,
+  "downloaded": 5,
+  "already_present": 0,
+  "manual": 12,
+  "skipped": 0
+ },
+ "items": [
+  {
+   "bibkey": "sola-2017-quaternion",
+   "grade": "A",
+   "doi": null,
+   "arxiv": "1711.02508",
+   "resolved_url": "https://arxiv.org/pdf/1711.02508",
+   "url_source": "oa_pdf",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "sola-2017-quaternion.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1686327
+   },
+   "note": "saved by the first acquisition run, which the user interrupted; size equals the server content-length"
+  },
+  {
+   "bibkey": "trawny-2005-indirect",
+   "grade": "A",
+   "doi": null,
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "trawny-2005-indirect.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "hegrenaes-2011-model",
+   "grade": "A",
+   "doi": "10.1109/JOE.2010.2100470",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "hegrenaes-2011-model.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "klein-2015-observability",
+   "grade": "A",
+   "doi": "10.3390/s151026818",
+   "arxiv": null,
+   "resolved_url": "https://www.mdpi.com/1424-8220/15/10/26818/pdf?version=1445502778",
+   "url_source": "openalex",
+   "outcome": "manual",
+   "reason": "http_4xx",
+   "saved_as": "klein-2015-observability.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "arnold-2018-robust",
+   "grade": "A",
+   "doi": null,
+   "arxiv": "1805.08011",
+   "resolved_url": "https://arxiv.org/pdf/1805.08011",
+   "url_source": "oa_pdf",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "arnold-2018-robust.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1222452
+   },
+   "note": "saved by the first acquisition run, which the user interrupted; size equals the server content-length"
+  },
+  {
+   "bibkey": "moore-2015-generalized",
+   "grade": "A",
+   "doi": "10.1007/978-3-319-08338-4_25",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "moore-2015-generalized.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "paull-2014-auv",
+   "grade": "B",
+   "doi": "10.1109/JOE.2013.2278891",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "paull-2014-auv.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "huang-2009-observability",
+   "grade": "B",
+   "doi": "10.1177/0278364909353640",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "huang-2009-observability.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "li-2012-improving",
+   "grade": "B",
+   "doi": "10.1109/ICRA.2012.6225229",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "li-2012-improving.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "barshalom-2002-estimation",
+   "grade": "B",
+   "doi": "10.1002/0471221279",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "barshalom-2002-estimation.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "hegrenaes-2007-model",
+   "grade": "B",
+   "doi": "10.4173/mic.2007.4.3",
+   "arxiv": null,
+   "resolved_url": "https://www.mic-journal.no/PDF/2007/MIC-2007-4-3.pdf",
+   "url_source": "openalex",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "hegrenaes-2007-model.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 2707519
+   },
+   "note": "first attempt timed out (slow server); retried with a 300 s limit"
+  },
+  {
+   "bibkey": "or-2025-selection",
+   "grade": "B",
+   "doi": null,
+   "arxiv": "2512.18508",
+   "resolved_url": "https://arxiv.org/pdf/2512.18508",
+   "url_source": "oa_pdf",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "or-2025-selection.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1948092
+   },
+   "note": null
+  },
+  {
+   "bibkey": "frutuoso-2022-influence",
+   "grade": "B",
+   "doi": "10.3390/s22093287",
+   "arxiv": null,
+   "resolved_url": "https://www.mdpi.com/1424-8220/22/9/3287/pdf?version=1650934118",
+   "url_source": "openalex",
+   "outcome": "manual",
+   "reason": "http_4xx",
+   "saved_as": "frutuoso-2022-influence.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "frutuoso-2025-assessment",
+   "grade": "B",
+   "doi": "10.1002/rob.22551",
+   "arxiv": null,
+   "resolved_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/rob.22551",
+   "url_source": "openalex",
+   "outcome": "manual",
+   "reason": "cloudflare_block",
+   "saved_as": "frutuoso-2025-assessment.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "balasubramanian-2021-comparison",
+   "grade": "B",
+   "doi": null,
+   "arxiv": "2105.12309",
+   "resolved_url": "https://arxiv.org/pdf/2105.12309",
+   "url_source": "oa_pdf",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "balasubramanian-2021-comparison.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1081195
+   },
+   "note": null
+  },
+  {
+   "bibkey": "groves-2013-principles",
+   "grade": "B",
+   "doi": null,
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "groves-2013-principles.pdf",
+   "validated": null,
+   "note": null
+  },
+  {
+   "bibkey": "fossen-2021-handbook",
+   "grade": "B",
+   "doi": "10.1002/9781119575016",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "fossen-2021-handbook.pdf",
+   "validated": null,
+   "note": null
+  }
+ ]
+}
