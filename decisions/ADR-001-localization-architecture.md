@@ -155,18 +155,39 @@ measurements to justify it.
 - The "velocity ≈ 0" dropout rule in the baseline, once powered logs and the thrust-model aid exist.
 - This decision, once a log with ground truth is available.
 
+## Evidence from running Option C on the log (2026-11-08)
+
+Details: `estimator_m/README.md`, "Running on recorded data".
+- **It works on real data.**
+  - Attitude is integrated from the raw gyro, corrected by gravity, with the VN-200 yaw as a heading aid.
+    It matches the VN-200's own attitude to 0.34° roll, 0.27° pitch and 1.18° yaw RMS.
+  - With noise tuned on NIS, no gate, and the "velocity ≈ 0" aid in DVL dropouts, it agrees with
+    `robot_localization` to 0.39 m RMS and with DVL dead reckoning to 0.35 m. The Python baseline (variant E)
+    gets 0.53 m and 0.62 m.
+- **Two lessons that apply to any filter on this vehicle:**
+  - The datasheet accelerometer noise is about 20× too optimistic for this log.
+  - A 99 % innovation gate makes the filter diverge: it rejects 15 % of DVL samples when level, drifts, and
+    rejects more.
+- **Still not decided:** accuracy. Both references use every DVL sample, so agreement favours ungated
+  filters. The status stays *Proposed* until a log with ground truth exists.
+
 ## Action items
 
-1. [ ] Update `estimator_m/config_estimator.m` with the log's lever arms and sensor rates (from `/tf_static`, so
-   still not hull measurements), and resolve the DVL minimum-depth rule for pool use.
-2. [ ] Write an export in `real_data/` to `.mat`:
-   - FLU/ENU to FRD/NED;
-   - IMU rates to delta-angle and delta-velocity on a fixed step;
-   - measurements indexed by IMU sample;
-   - VN-200 yaw as the heading measurement.
-3. [ ] Add a truth-free run mode to `run_filter.m` (it currently computes errors against a truth trajectory).
-4. [ ] Run the ESKF on the 2026-11-05 log and compare with variant E using `compare_variants.py` metrics.
+1. [x] Log-supported lever arms, rates and measured depth noise are in `estimator_m/config_real_log.m`.
+   It is a separate file, so `config_estimator.m` keeps the simulation values. The DVL minimum-depth rule is
+   not applied to recorded data.
+2. [x] Export to `.mat`: `real_data/export_mat.py`. It does the frame conversion, writes IMU increments on an
+   80 Hz grid, indexes measurements by IMU sample, and adds the VN-200 yaw at 10 Hz. The frames were checked
+   by gyro-only integration against the VN-200 attitude.
+3. [x] Truth-free mode, optional χ² gating and a `zero_vel` pseudo-measurement in `run_filter` /
+   `eskf_update` / `eskf_meas`. Tests pass, including the new `test_gating`.
+4. [x] Ran on the 2026-11-05 log and compared: `real_data/compare_eskf.py`, `real_data/results/eskf_table.txt`.
 5. [ ] Record a powered reference log: start and end at a marked point, measured waypoints, camera topics,
    magnetometer output.
 6. [ ] Investigate the `/odometry/filtered` gaps (797.0–825.6 s, 861.9–957.5 s).
 7. [ ] Decide on the switch from `robot_localization` (update this ADR to *Accepted* or *Superseded*).
+8. [ ] With the reference log, decide DVL outlier handling: no gate, a loose gate (99.99 %, cap 3), or a
+   robust heavy-tailed DVL update. Re-tune noise with NIS on a powered run.
+9. [ ] Replace the "velocity ≈ 0" dropout aid with the thrust-model aid from `plant_m/` before any powered
+   run.
+10. [ ] Port the ESKF to a ROS 2 node and run it in shadow mode next to `robot_localization`.

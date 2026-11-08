@@ -5,7 +5,7 @@ function run_all_tests(include_slow)
 if nargin < 1, include_slow = false; end
 here = fileparts(mfilename('fullpath'));
 addpath(fileparts(here)); setup_paths();
-tests = {'test_jacobians', 'test_mechanisation', 'test_cross_check_python'};
+tests = {'test_jacobians', 'test_mechanisation', 'test_cross_check_python', 'test_gating'};
 if include_slow, tests{end + 1} = 'test_consistency'; end
 nfail = 0;
 for i = 1:numel(tests)

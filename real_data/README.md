@@ -24,6 +24,8 @@ ESKF in `estimator_m/`. See `../decisions/ADR-001-localization-architecture.md` 
 | `extract.py` | Decodes the bag into one parquet table per topic (`data/extracted/`, gitignored) |
 | `ekf_localization.py` | The EKF and the variant definitions (A–F); writes runs to `data/runs/` and `results/variant_diagnostics.txt` |
 | `compare_variants.py` | DVL dead reckoning, metrics, `results/variants_table.txt` and `results/variants_comparison.png` |
+| `export_mat.py` | Exports the log for the MATLAB ESKF: FLU/ENU → FRD/NED, IMU increments on an 80 Hz grid (`data/real_log.mat`) |
+| `compare_eskf.py` | ESKF variants vs robot_localization, variant E and DVL dead reckoning: `results/eskf_table.txt`, `results/eskf_comparison.png` |
 | `requirements.txt` | Python packages |
 | `results/` | Committed outputs of the run below |
 
@@ -107,7 +109,30 @@ Full table: `results/variants_table.txt`. Per-variant rejections and NIS: `resul
   keeps the error reproducible.
 - **Without velocity aiding, dropouts drift by metres** (B, C). Bias states alone (D) only change the
   direction of the drift, because the bias is not observable without a velocity measurement.
-- **E is the recommended variant.** F is about 5 cm better, which does not justify three more states here.
+- **E was the recommended Python variant.** F is about 5 cm better, which does not justify three more
+  states here. It is now superseded as the estimator by the tuned ESKF below, and kept as the baseline.
+
+## The estimator_m ESKF on this log (added 2026-11-08)
+
+`export_mat.py` feeds the log to the MATLAB ESKF. That filter integrates attitude from the raw gyro and uses
+the VN-200 yaw as a heading aid. Full details, tuning and caveats are in `../estimator_m/README.md`
+("Running on recorded data").
+
+| Estimator | Path (m) | RMS vs robot_localization (m) | RMS vs DVL dead reckoning (m) |
+|---|---|---|---|
+| **ESKF, NIS-tuned, no gate, "velocity ≈ 0" in dropouts** | 87.1 | **0.39** | **0.35** |
+| ESKF, same with a 99 % gate | 137.7 | 2.11 | 2.71 |
+| Python variant E | 85.6 | 0.53 | 0.62 |
+| robot_localization | 87.0 | — | — |
+
+- **Roll and pitch agree with the VN-200.** The ESKF's raw-gyro attitude matches the VN-200's internal
+  solution to 0.34° / 0.27° RMS (yaw 1.18°, which is aided by the VN-200 yaw itself).
+- **The datasheet noise was badly wrong for this log.** Accelerometer noise had to be raised ×20 for
+  consistent DVL NIS (median 2.12, target 2.37).
+- **Gating at 99 % makes the ESKF diverge.** It rejects 15 % of DVL samples even when the vehicle is level,
+  drifts, then rejects more.
+- **The unexplained window is explained.** Variant E's 1050–1150 s window was also gating: rerun without
+  gating, E moves [0.23, −0.31] m there, the same as DVL dead reckoning ([0.23, −0.33]).
 
 ## Results that look too good (read before trusting the numbers)
 
@@ -115,14 +140,17 @@ Full table: `results/variants_table.txt`. Per-variant rejections and NIS: `resul
   heading, so all three could carry the same error.
 - **The dropout result is not independent.** Odom also stays almost still during the DVL dropout, so
   agreeing with it there proves nothing about the true motion.
-- **The noise settings are too conservative.** Median DVL NIS is 0.49 (E) and 0.18 (F), against 2.37 for a
-  well-tuned filter. The assumed noise is larger than the real errors.
-- **One window disagrees and is not explained.** In 1050–1150 s, E moves [−0.17, −1.09] m, while odom moves
-  [−0.12, −0.18] and DVL dead reckoning [0.23, −0.33].
+- **The Python variants are not tuned.** Median DVL NIS is 0.49 (E) and 0.18 (F), against 2.37 for a
+  well-tuned filter, so their assumed noise is larger than the real errors. The ESKF was tuned with NIS;
+  these were not.
+- **The references favour using every DVL sample.** Odom and dead reckoning both use every DVL sample, so
+  ungated filters agree with them best almost by construction. 2.7 % of DVL innovations are extreme
+  (> 99.99 % χ²). Whether rejecting those helps accuracy needs ground truth.
 
 ## Next
 
 1. **Record a powered log with a reference:** start and end at a marked point, measured waypoints, camera
    topics, and magnetometer output if the VN-200 driver can publish it.
-2. **Export the extracted tables to `.mat`** and run `estimator_m/run_filter.m` on recorded data.
-3. **Tune the noise with NIS**, and replace the "velocity ≈ 0" rule with the thrust-model aid (Phase 4).
+2. **Decide on DVL outlier handling with that reference.** Options: no gate, a loose gate (99.99 % with a
+   cap of 3 gave 0.90 m), or a robust (heavy-tailed) DVL update.
+3. **Replace the "velocity ≈ 0" rule** with the thrust-model aid (Phase 4), and re-tune noise on a powered run.

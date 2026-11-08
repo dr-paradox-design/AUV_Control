@@ -26,6 +26,7 @@ lever arms.
 | `run_filter.m` | Runs the filter over a data set (simulated now, recorded later) |
 | `run_once.m`, `run_compare_bias.m` | One Monte Carlo run; RW vs GM comparison |
 | `tests/` | `run_all_tests.m` and the tests; `reference_python.mat` for the cross-check |
+| `config_real_log.m`, `load_real_log.m`, `run_real_log.m` | Recorded-data path: log-supported config, loader, variants (see "Running on recorded data") |
 
 ## How to run (MATLAB)
 
@@ -84,3 +85,91 @@ ANEES (20.36). Run `run_compare_bias(20)` in MATLAB for the real numbers.
   depth NIS swings in both directions: 1.044 here, 0.84–1.12 in Python runs. With a 16-bit
   ADC it is 1.000. Fix options: a higher-resolution ADC, or model the quantisation error
   as a correlated state.
+
+## Running on recorded data (GNU Octave 6.4, 2026-11-08)
+
+First run of this ESKF on a real log (2026-11-05, 1250 s, vehicle unarmed and moved by hand; see
+`../real_data/README.md`). **There is no ground truth**, so the results are consistency checks and
+agreement with two references, not accuracy.
+
+**What changed in the filter code.** All changes are additions; with default arguments the behaviour is
+identical, and the Python cross-check still matches to 1.4e-14.
+- `run_filter`:
+  - a truth-free mode (no `tr.p`: `err` and `nees` are NaN);
+  - an optional `opts` argument with per-sensor χ² gates and a cap on consecutive rejections;
+  - a sixth measurement type, `zero_vel`.
+- `eskf_update`: an optional NIS gate; a rejected update leaves `x` and `P` unchanged.
+- `eskf_meas`: `zero_vel`, a "velocity ≈ 0" pseudo-measurement. It is an assumption about slow or unpowered
+  motion, not a sensor.
+- `tests/test_gating.m` (new) and a `zero_vel` row in `test_jacobians`. **Fast tests: 4 of 4 pass on Octave 6.4.**
+- `../compat/octave6/rng.m`: Octave < 7 has no `rng`. `setup_paths` adds this stand-in only when `rng` is missing.
+
+**How to run**
+
+```bash
+python real_data/extract.py <bag folder>        # decode the bag
+python real_data/export_mat.py                  # FLU/ENU -> FRD/NED, IMU increments at 80 Hz
+cd estimator_m && octave-cli --eval "setup_paths; run_real_log"   # ~30 s per variant
+cd ../real_data && python ekf_localization.py && python compare_eskf.py
+```
+
+**Inputs from the log** (`config_real_log.m`; every line is tagged with its source):
+- **Lever arms** from `/tf_static`.
+- **Depth noise** measured from the log: 0.080 m.
+- **Heading:** the VN-200's own yaw at 10 Hz. No magnetometer is logged.
+- **Attitude** is integrated from the raw gyro and corrected through gravity. The frame conversion was
+  checked first: 5 s of gyro-only integration matches the VN-200 attitude to a median 0.32°, and to 8.8°
+  with the gyro sign flipped.
+
+**Tuning was done on NIS only, never on agreement with the references.**
+
+| Accelerometer noise | DVL median NIS (target 2.37) | DVL rejected at 99 % gate |
+|---|---|---|
+| datasheet ×1 | 4.93 | 40.3 % |
+| ×10 | 3.18 | 31.1 % |
+| ×15 | 2.63 | 22.2 % |
+| **×20 (used)** | **2.12** | 16.5 % |
+| ×30 | 1.43 | 7.9 % |
+
+- **The datasheet value is a floor.** It describes the sensor, not a hand-moved vehicle.
+- **Heading σ:** 1.3°, which gives a median NIS of 0.37 (target 0.45).
+- **DVL time shift:** 0.1–0.2 s changed the rejection rate by under one point, so timestamps are used as
+  recorded.
+
+**Results** (`../real_data/results/eskf_table.txt`; references start at the origin; RMS over 0–797 s):
+
+| Estimator | Path (m) | RMS vs robot_localization | RMS vs DVL dead reckoning | Drift in 49.5 s DVL dropout | Attitude vs VN-200 (roll / pitch / yaw RMS) |
+|---|---|---|---|---|---|
+| ESKF, datasheet noise | 313.7 | 7.74 m | 13.25 m | 1.3 m | 0.50° / 0.27° / 1.25° |
+| **ESKF, tuned, no gate, zero-vel** | **87.1** | **0.39 m** | **0.35 m** | 0.17 m | **0.34° / 0.27° / 1.18°** |
+| ESKF, tuned, 99 % gate, no zero-vel | 434.5 | 27.09 m | 24.01 m | 117.3 m | 0.49° / 0.29° / 1.29° |
+| ESKF, tuned, 99 % gate, zero-vel | 137.7 | 2.11 m | 2.71 m | 0.14 m | 0.45° / 0.28° / 1.28° |
+| ESKF, tuned, 99.99 % gate (cap 3), zero-vel | 88.9 | 0.90 m | 0.88 m | 0.16 m | 0.37° / 0.28° / 1.19° |
+| Python EKF, variant E (`../real_data`) | 85.6 | 0.53 m | 0.62 m | 0.08 m | — |
+| robot_localization | 87.0 | — | — | 0.17 m | — |
+| DVL dead reckoning | 81.8 | — | — | (gap skipped) | — |
+
+**Findings**
+- **Attitude from the raw gyro works.** With only the VN-200 yaw as an aid, roll and pitch agree with the
+  VN-200's internal solution to about 0.3° RMS.
+- **The estimated biases are physically sensible.** The vertical accelerometer bias settles at −0.087 m/s²,
+  close to the gap between the gravity the accelerometer reads (median 9.90 m/s²) and this config's model
+  gravity (9.79 m/s² at the assumed 20° latitude).
+- **A 99 % gate makes this filter diverge.**
+  - Ungated, 7.4 % of DVL innovations exceed the 99 % threshold (1 % expected) and 2.7 % exceed 99.99 %. So
+    some DVL readings really are outliers.
+  - With the gate on, the filter rejects 15 % of DVL samples even when level (tilt ≤ 10°). It then drifts,
+    which makes the next samples look worse, and it spirals.
+  - Rejections are highest when tilted > 10° (50 %) and within 2 s after a DVL gap (52 %), but most come
+    from the spiral.
+- **The zero-velocity aid is what bridges the 49.5 s dropout.** Without it, the drift is about 117 m.
+
+**Read before trusting these numbers**
+- **The references use every DVL sample.** Dead reckoning integrates all of them, and robot_localization
+  shows no sign of gating (its config is not in the log). So the ungated ESKF agrees with them best almost by
+  construction. Whether gating the extreme 2.7 % helps *accuracy* cannot be decided without ground truth.
+- **The tuned noise is specific to this log.** It is the effective noise of a hand-moved vehicle. A powered
+  run needs re-tuning, and the zero-velocity aid is invalid there.
+- **The heading comes from the VN-200.** It is the VN-200's yaw, so yaw is not independent of it. A logged
+  magnetometer is needed for that.
+- **Unchanged assumptions:** latitude (20°), gyro noise and bias values are still ASSUMED.

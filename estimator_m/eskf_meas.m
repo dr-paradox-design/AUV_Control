@@ -48,6 +48,12 @@ switch name
         H = zeros(1, 16);
         H(7:9) = [tan(theta) * cos(psi), tan(theta) * sin(psi), 1] * R;
         Rm = cfg.heading.sigma^2;
+    case 'zero_vel'
+        % pseudo-measurement v_NED = 0; an assumption about slow / unpowered motion, not a sensor
+        h = x.v;
+        H = zeros(3, 16);
+        H(:, 4:6) = I3;
+        Rm = cfg.zero_vel.sigma^2 * I3;
     otherwise
         error('unknown measurement %s', name);
 end

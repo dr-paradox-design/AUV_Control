@@ -3,10 +3,11 @@ function test_jacobians()
 % The measurement Jacobians and the lever-arm / Earth-rate terms are hand-derived
 % and not in Sola or MSS, so this is their primary check.
 cfg = config_estimator();
+cfg.zero_vel.sigma = 0.1;      % only set in config_real_log; needed for the zero_vel pseudo-measurement
 x = test_state(cfg, 0);
 w_ib = [0.1; -0.2; 0.3];
 w_meas = w_ib + x.bg;          % gyro bias enters the lever-arm terms through w_nb
-names = {'dvl', 'depth', 'gnss_pos', 'gnss_vel', 'heading'};
+names = {'dvl', 'depth', 'gnss_pos', 'gnss_vel', 'heading', 'zero_vel'};
 for i = 1:numel(names)
     [~, H] = eskf_meas(names{i}, x, w_ib, cfg);
     hf = @(xx) meas_h(names{i}, xx, w_meas - xx.bg, cfg);

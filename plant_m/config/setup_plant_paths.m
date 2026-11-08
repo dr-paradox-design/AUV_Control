@@ -3,4 +3,5 @@ function setup_plant_paths()
 here = fileparts(fileparts(mfilename('fullpath')));      % plant_m
 addpath(here, fullfile(here, 'config'), fullfile(here, 'lib'), fullfile(here, 'model'), ...
         fullfile(here, 'sim'), fullfile(here, 'tests'));
+if ~exist('rng'), addpath(fullfile(fileparts(here), 'compat', 'octave6')); end   % Octave < 7
 end
