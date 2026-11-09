@@ -93,3 +93,20 @@ A = must read for Option C, B = supporting, C = cited but outside this focus (no
 - No source yet on running an ESKF on **pool** data without a magnetometer (yaw unobservable from DVL,
   depth and gravity). Candidate topic for a real literature search.
 - No source comparing a custom ESKF against `robot_localization` on the same AUV log.
+
+## 5. Supplementary — author's lecture slides (added 2026-11-09)
+
+Thor Fossen shares chapter slides for the Handbook from his repository (https://github.com/cybergalactic/FossenHandbook). They are **not** the book:
+`fossen-2021-handbook` stays on the manual worklist. Not graded A/B; kept for teaching-level explanations.
+
+| Grade | Autor Jahr | Kurztitel | OA/Zugang | DOI/Link |
+|---|---|---|---|---|
+| — | Fossen 2025 | Ch 14: Inertial Navigation Systems (slides) | free (author) | [https://github.com/cybergalactic/FossenHandbook](https://github.com/cybergalactic/FossenHandbook) |
+| — | Fossen 2022 | Ch 13: Model-Based Navigation Systems (slides) | free (author) | [https://github.com/cybergalactic/FossenHandbook](https://github.com/cybergalactic/FossenHandbook) |
+| — | Fossen 2025 | Ch 2: Kinematics (slides) | free (author) | [https://github.com/cybergalactic/FossenHandbook](https://github.com/cybergalactic/FossenHandbook) |
+| — | Fossen 2023 | Ch 8: Models for Underwater Vehicles (slides) | free (author) | [https://github.com/cybergalactic/FossenHandbook](https://github.com/cybergalactic/FossenHandbook) |
+
+- `fossen-2025-inertial`: INS and error-state filter theory behind the ESKF
+- `fossen-2022-model`: model-aided navigation; basis for the thrust-model aid
+- `fossen-2025-kinematics`: NED/BODY frames, Euler angles and quaternions used by the adapter
+- `fossen-2023-models`: 6-DOF AUV models behind plant_m

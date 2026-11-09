@@ -1,0 +1,338 @@
+{
+ "skill": "acquire-sources",
+ "date": "2026-11-09",
+ "literaturguide": "input/bibliography/literaturguide.md",
+ "grade_scope": [
+  "A",
+  "B"
+ ],
+ "library": "~/research-library",
+ "url_resolution": "re-run: OpenAlex locations, Semantic Scholar openAccessPdf, web search for author copies; Unpaywall not used (needs a contact email)",
+ "totals": {
+  "worklist": 17,
+  "downloaded": 1,
+  "already_present": 10,
+  "manual": 6,
+  "skipped": 0
+ },
+ "items": [
+  {
+   "bibkey": "sola-2017-quaternion",
+   "grade": "A",
+   "doi": null,
+   "arxiv": "1711.02508",
+   "resolved_url": "https://arxiv.org/pdf/1711.02508",
+   "url_source": "oa_pdf",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "sola-2017-quaternion.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1686327
+   },
+   "note": "saved by the first acquisition run, which the user interrupted; size equals the server content-length"
+  },
+  {
+   "bibkey": "trawny-2005-indirect",
+   "grade": "A",
+   "doi": null,
+   "arxiv": null,
+   "resolved_url": "https://www.cse.sc.edu/~yiannisr/774/2023/indirect-kalman-filter-for-3d-attitude-estimation.pdf",
+   "url_source": "web search (copy of the original tech report)",
+   "outcome": "downloaded",
+   "reason": null,
+   "saved_as": "trawny-2005-indirect.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 338478
+   },
+   "note": "title page checked: TR 2005-002, March 2005, MARS Lab, University of Minnesota"
+  },
+  {
+   "bibkey": "hegrenaes-2011-model",
+   "grade": "A",
+   "doi": "10.1109/JOE.2010.2100470",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "user-supplied (PAPER/ folder)",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "hegrenaes-2011-model.pdf",
+   "validated": null,
+   "note": "filed from PAPER/Model-Aided_INS_With_Sea_Current_Estimation_for_Robust_Underwater_Navigation (1).pdf; published original confirmed: IEEE JOE vol. 36 no. 2, p. 316 header"
+  },
+  {
+   "bibkey": "klein-2015-observability",
+   "grade": "A",
+   "doi": "10.3390/s151026818",
+   "arxiv": null,
+   "resolved_url": "https://www.mdpi.com/1424-8220/15/10/26818/pdf?version=1445502778",
+   "url_source": "user-supplied (PAPER/ folder)",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "klein-2015-observability.pdf",
+   "validated": null,
+   "note": "filed from PAPER/sensors-15-26818.pdf; published original confirmed: Sensors 2015, 15, 26818-26837, DOI on page 1"
+  },
+  {
+   "bibkey": "arnold-2018-robust",
+   "grade": "A",
+   "doi": null,
+   "arxiv": "1805.08011",
+   "resolved_url": "https://arxiv.org/pdf/1805.08011",
+   "url_source": "oa_pdf",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "arnold-2018-robust.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1222452
+   },
+   "note": "saved by the first acquisition run, which the user interrupted; size equals the server content-length"
+  },
+  {
+   "bibkey": "moore-2015-generalized",
+   "grade": "A",
+   "doi": "10.1007/978-3-319-08338-4_25",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "moore-2015-generalized.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "The author copy once on docs.ros.org now returns a web page, not the PDF. Springer, or ask the authors."
+  },
+  {
+   "bibkey": "paull-2014-auv",
+   "grade": "B",
+   "doi": "10.1109/JOE.2013.2278891",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "user-supplied (PAPER/ folder)",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "paull-2014-auv.pdf",
+   "validated": null,
+   "note": "filed from PAPER/Paull_JOE_2014.pdf; published original confirmed: IEEE JOE vol. 39 no. 1, p. 131 header"
+  },
+  {
+   "bibkey": "huang-2009-observability",
+   "grade": "B",
+   "doi": "10.1177/0278364909353640",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "user-supplied (PAPER/ folder)",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "huang-2009-observability.pdf",
+   "validated": null,
+   "note": "filed from PAPER/huang-et-al-2009-observability-based-rules-for-designing-consistent-ekf-slam-estimators.pdf; published original confirmed: IJRR vol. 29 no. 5, pp. 502-528, DOI on page 1 footer"
+  },
+  {
+   "bibkey": "li-2012-improving",
+   "grade": "B",
+   "doi": "10.1109/ICRA.2012.6225229",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "li-2012-improving.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "The authors' UC Riverside link now returns 404. IEEE ICRA: IEEE Xplore, or email the authors."
+  },
+  {
+   "bibkey": "barshalom-2002-estimation",
+   "grade": "B",
+   "doi": "10.1002/0471221279",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "barshalom-2002-estimation.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "Textbook (Wiley): library e-book, interlibrary loan or purchase."
+  },
+  {
+   "bibkey": "hegrenaes-2007-model",
+   "grade": "B",
+   "doi": "10.4173/mic.2007.4.3",
+   "arxiv": null,
+   "resolved_url": "https://www.mic-journal.no/PDF/2007/MIC-2007-4-3.pdf",
+   "url_source": "openalex",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "hegrenaes-2007-model.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 2707519
+   },
+   "note": "first attempt timed out (slow server); retried with a 300 s limit"
+  },
+  {
+   "bibkey": "or-2025-selection",
+   "grade": "B",
+   "doi": null,
+   "arxiv": "2512.18508",
+   "resolved_url": "https://arxiv.org/pdf/2512.18508",
+   "url_source": "oa_pdf",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "or-2025-selection.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1948092
+   },
+   "note": null
+  },
+  {
+   "bibkey": "frutuoso-2022-influence",
+   "grade": "B",
+   "doi": "10.3390/s22093287",
+   "arxiv": null,
+   "resolved_url": "https://www.mdpi.com/1424-8220/22/9/3287/pdf?version=1650934118",
+   "url_source": "user-supplied (PAPER/ folder)",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "frutuoso-2022-influence.pdf",
+   "validated": null,
+   "note": "filed from PAPER/sensors-22-03287-v2.pdf; published original confirmed: MDPI Sensors published PDF, title and authors in metadata"
+  },
+  {
+   "bibkey": "frutuoso-2025-assessment",
+   "grade": "B",
+   "doi": "10.1002/rob.22551",
+   "arxiv": null,
+   "resolved_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/rob.22551",
+   "url_source": "openalex",
+   "outcome": "manual",
+   "reason": "cloudflare_block",
+   "saved_as": "frutuoso-2025-assessment.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "Open access (Wiley); behind a Cloudflare challenge. Open the link in a browser."
+  },
+  {
+   "bibkey": "balasubramanian-2021-comparison",
+   "grade": "B",
+   "doi": null,
+   "arxiv": "2105.12309",
+   "resolved_url": "https://arxiv.org/pdf/2105.12309",
+   "url_source": "oa_pdf",
+   "outcome": "already-present",
+   "reason": null,
+   "saved_as": "balasubramanian-2021-comparison.pdf",
+   "validated": {
+    "http": 200,
+    "content_type": "application/pdf",
+    "magic_pdf": true,
+    "bytes": 1081195
+   },
+   "note": null
+  },
+  {
+   "bibkey": "groves-2013-principles",
+   "grade": "B",
+   "doi": null,
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "groves-2013-principles.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "Textbook (Artech House): library, interlibrary loan or purchase."
+  },
+  {
+   "bibkey": "fossen-2021-handbook",
+   "grade": "B",
+   "doi": "10.1002/9781119575016",
+   "arxiv": null,
+   "resolved_url": null,
+   "url_source": "none",
+   "outcome": "manual",
+   "reason": "no_oa_url",
+   "saved_as": "fossen-2021-handbook.pdf",
+   "validated": null,
+   "note": null,
+   "note_2026_11_09": "Textbook (Wiley): library e-book or purchase."
+  }
+ ],
+ "extras_checked": [
+  {
+   "what": "Hegrenaes PhD thesis, NTNU 2010 (NVA record 0198cc3e44c1-c97d9134-7e39-4ca0-a580-28d2f24fff75)",
+   "outcome": "not downloadable: file embargoed (embargoDate 9998-01-01), read-metadata only"
+  },
+  {
+   "what": "robot_localization ROSCon 2015 slides (roscon.ros.org)",
+   "outcome": "rejected by validation: HTML page, 7499 bytes, not a PDF"
+  }
+ ],
+ "supplementary": [
+  {
+   "bibkey": "fossen-2025-inertial",
+   "source": "https://github.com/cybergalactic/FossenHandbook",
+   "what": "Chapter 14 lecture slides",
+   "outcome": "downloaded",
+   "saved_as": "fossen-2025-inertial.pdf",
+   "validated": {
+    "http": 200,
+    "magic_pdf": true,
+    "bytes": 13532516
+   }
+  },
+  {
+   "bibkey": "fossen-2022-model",
+   "source": "https://github.com/cybergalactic/FossenHandbook",
+   "what": "Chapter 13 lecture slides",
+   "outcome": "downloaded",
+   "saved_as": "fossen-2022-model.pdf",
+   "validated": {
+    "http": 200,
+    "magic_pdf": true,
+    "bytes": 15433421
+   }
+  },
+  {
+   "bibkey": "fossen-2025-kinematics",
+   "source": "https://github.com/cybergalactic/FossenHandbook",
+   "what": "Chapter 2 lecture slides",
+   "outcome": "downloaded",
+   "saved_as": "fossen-2025-kinematics.pdf",
+   "validated": {
+    "http": 200,
+    "magic_pdf": true,
+    "bytes": 8315997
+   }
+  },
+  {
+   "bibkey": "fossen-2023-models",
+   "source": "https://github.com/cybergalactic/FossenHandbook",
+   "what": "Chapter 8 lecture slides",
+   "outcome": "downloaded",
+   "saved_as": "fossen-2023-models.pdf",
+   "validated": {
+    "http": 200,
+    "magic_pdf": true,
+    "bytes": 7265243
+   }
+  }
+ ],
+ "user_supplied_duplicate": "PAPER/Trawny05b.pdf is identical to trawny-2005-indirect.pdf (same size and text); not re-filed"
+}
