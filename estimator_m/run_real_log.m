@@ -11,10 +11,18 @@ function run_real_log(variants)
 %   eskf_gated_zv      tuned, gated, zero-velocity aid when the DVL is silent > 0.5 s
 %   eskf_loosegate_zv  tuned, 99.99% gate, accept after 3 rejections in a row, zero-velocity aid
 %   eskf_robust_zv     tuned, no gate; outliers down-weighted so their NIS is capped at the 99% value
+%   eskf_noheading_zv  tuned, no gate, NO VN-200 yaw aid: yaw only from the gyros (observability test)
+%   eskf_noheading_oc_zv  as eskf_noheading_zv, with the observability constraint (opts.oc)
+%   eskf_oc_zv            as eskf_ungated_zv, with the observability constraint
+%   eskf_oc_robusthdg_zv  as eskf_oc_zv, plus a robust heading update (NIS cap 6.63) against VN-200 yaw jumps
+%   eskf_hdg1hz_zv        as eskf_ungated_zv, VN-200 yaw used at 1 Hz (sigma 1.3 deg)
+%   eskf_hdg0p2hz_zv      as eskf_ungated_zv, VN-200 yaw used at 0.2 Hz with sigma 3 deg (less trust in a
+%                         time-correlated, jumpy magnetometer heading)
 root = fileparts(fileparts(mfilename('fullpath')));
 data = fullfile(root, 'real_data', 'data');
 all_variants = {'eskf_datasheet_zv', 'eskf_ungated_zv', 'eskf_gated', 'eskf_gated_zv', 'eskf_loosegate_zv', ...
-                'eskf_robust_zv'};
+                'eskf_robust_zv', 'eskf_noheading_zv', 'eskf_noheading_oc_zv', 'eskf_oc_zv', 'eskf_oc_robusthdg_zv', ...
+                'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv'};
 if nargin < 1 || isempty(variants), variants = all_variants; end
 
 tuned = config_real_log();
@@ -29,14 +37,22 @@ log_every = 4;                                                           % 20 Hz
 for i = 1:numel(variants)
     v = variants{i};
     cfg = tuned; if strcmp(v, 'eskf_datasheet_zv'), cfg = datasheet; end
+    if strcmp(v, 'eskf_hdg1hz_zv'), cfg.heading.rate_hz = 1; end
+    if strcmp(v, 'eskf_hdg0p2hz_zv'), cfg.heading.rate_hz = 0.2; cfg.heading.sigma = 3 * pi / 180; end
     use_zv = numel(v) > 3 && strcmp(v(end-2:end), '_zv');
     opts = gated;
     if strcmp(v, 'eskf_ungated_zv'), opts = struct(); end
     if strcmp(v, 'eskf_loosegate_zv'), opts = loose; end
     if strcmp(v, 'eskf_robust_zv'), opts = robust; end
+    use = [];
+    if strcmp(v, 'eskf_noheading_zv'), opts = struct(); use = {'dvl', 'depth', 'zero_vel'}; end
+    if strcmp(v, 'eskf_noheading_oc_zv'), opts = struct('oc', true); use = {'dvl', 'depth', 'zero_vel'}; end
+    if strcmp(v, 'eskf_oc_zv'), opts = struct('oc', true); end
+    if strcmp(v, 'eskf_oc_robusthdg_zv'), opts = struct('oc', true); opts.robust.heading = 6.63; end
+    if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv'})), opts = struct(); end
     [tr, imu, meas, x0, P0, raw] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
     tic;
-    res = run_filter(tr, imu, meas, [], cfg, 'rw', x0, P0, log_every, [], opts);
+    res = run_filter(tr, imu, meas, [], cfg, 'rw', x0, P0, log_every, use, opts);
     el = toc;
     res.t_bag = raw.t0_bag + res.t;
     res.variant = v;

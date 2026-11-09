@@ -20,7 +20,8 @@ HERE = Path(__file__).resolve().parent
 DATA = HERE / 'data'
 RESULTS = HERE / 'results'
 ESKF_VARIANTS = ['eskf_datasheet_zv', 'eskf_ungated_zv', 'eskf_gated', 'eskf_gated_zv', 'eskf_loosegate_zv',
-                 'eskf_robust_zv']
+                 'eskf_robust_zv', 'eskf_oc_zv', 'eskf_oc_robusthdg_zv', 'eskf_hdg1hz_zv',
+                 'eskf_hdg0p2hz_zv', 'eskf_noheading_zv']
 MAIN = 'eskf_gated_zv'          # rejection breakdown is shown for the 99% gate, where the spiral appears
 GAP_S = 1.0
 

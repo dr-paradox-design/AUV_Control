@@ -27,6 +27,7 @@ ESKF in `estimator_m/`. See `../decisions/ADR-001-localization-architecture.md` 
 | `export_mat.py` | Exports the log for the MATLAB ESKF: FLU/ENU → FRD/NED, IMU increments on an 80 Hz grid (`data/real_log.mat`) |
 | `compare_eskf.py` | ESKF variants vs robot_localization, variant E and DVL dead reckoning: `results/eskf_table.txt`, `results/eskf_comparison.png` |
 | `outage_benchmark.py` | Artificial DVL outages of 2–20 s; scores how well each filter bridges them: `results/outage_table_<L>s.txt` |
+| `heading_check.py` | ESKF yaw vs the VN-200 yaw and the filter's own yaw σ: `results/heading_table.txt` |
 | `requirements.txt` | Python packages |
 | `results/` | Committed outputs of the run below |
 
@@ -150,6 +151,9 @@ the VN-200 yaw as a heading aid. Full details, tuning and caveats are in `../est
   drifts, then rejects more.
 - **A robust update avoids the spiral.** It caps each outlier's NIS instead of rejecting it, and scores
   0.95 m RMS against robot_localization.
+- **The papers changed the heading handling, not the maths.** The observability constraint (Huang et al.)
+  had no measurable effect. Using the VN-200 yaw at 0.2 Hz with σ 3°, instead of 10 Hz with σ 1.3°, improved
+  agreement to 0.33 m and cut yaw overconfidence tenfold. Details: `../estimator_m/README.md`.
 - **The DVL carries position.** In artificial outages, pure inertial drift reaches 0.08 m after 2 s, 1.9 m
   after 10 s and 8.4 m after 20 s. Full tables are in `../estimator_m/README.md`.
 - **The unexplained window is explained.** Variant E's 1050–1150 s window was also gating: rerun without

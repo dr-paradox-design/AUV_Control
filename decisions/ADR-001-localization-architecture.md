@@ -176,6 +176,12 @@ Details: `estimator_m/README.md`, "Running on recorded data".
   - On this slow, unpowered log, "velocity ≈ 0" does as well as any filter, because the vehicle hardly moved.
   - The DVL carries position, so reducing DVL dropouts and adding the thrust-model aid matter more than the
     choice between filters.
+- **Literature-driven checks (2026-11-09):**
+  - Without the VN-200 yaw aid, yaw and the vertical gyro bias are unobservable, as Klein & Diamant
+    predict. Gyro-only yaw ends 21° from the VN-200 yaw over 21 min.
+  - The VN-200 heading itself shows 5° jumps in 10 s windows: the weak link.
+  - The observability constraint (Huang et al.) had no measurable effect.
+  - Using the VN-200 yaw at 0.2 Hz with σ 3° improves agreement to 0.33 m and cuts yaw overconfidence tenfold.
 - **robot_localization's two output gaps** happen while all of its inputs keep arriving. The first ends with
   a 2.4 m jump that the DVL-aided motion does not support; the second ends frozen.
 - **Still not decided:** accuracy. Both references use every DVL sample, so agreement favours ungated
@@ -202,3 +208,6 @@ Details: `estimator_m/README.md`, "Running on recorded data".
 9. [ ] Replace the "velocity ≈ 0" dropout aid with the thrust-model aid from `plant_m/` before any powered
    run.
 10. [ ] Port the ESKF to a ROS 2 node and run it in shadow mode next to `robot_localization`.
+11. [ ] Heading source: log the raw VN-200 magnetometer and calibrate it, or add visual heading. Model the
+    remaining correlated heading error as a Gauss–Markov state. Until then, use the VN-200 yaw at 0.2 Hz with
+    σ 3°, pending confirmation on a log with ground truth.

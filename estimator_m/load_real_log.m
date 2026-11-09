@@ -21,7 +21,10 @@ imu.dvel = raw.dvel;
 
 meas.dvl = to_struct(raw.dvl_k, raw.dvl_z);
 meas.depth = to_struct(raw.depth_k, raw.depth_z);
-meas.heading = to_struct(raw.heading_k, raw.heading_z);
+hk = double(raw.heading_k(:)); hz = raw.heading_z(:);
+src_rate = (numel(hk) - 1) / ((hk(end) - hk(1)) * tr.dt);   % 10 Hz in the export (IMU stamps are bursty)
+keep = 1:max(1, round(src_rate / cfg.heading.rate_hz)):numel(hk);   % decimate to cfg.heading.rate_hz
+meas.heading = to_struct(hk(keep), hz(keep));
 meas.gnss_pos = struct('k', {}, 'z', {});
 meas.gnss_vel = struct('k', {}, 'z', {});
 meas.zero_vel = struct('k', {}, 'z', {});

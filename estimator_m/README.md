@@ -28,6 +28,7 @@ lever arms.
 | `tests/` | `run_all_tests.m` and the tests; `reference_python.mat` for the cross-check |
 | `config_real_log.m`, `load_real_log.m`, `run_real_log.m` | Recorded-data path: log-supported config, loader, variants (see "Running on recorded data") |
 | `run_outage_benchmark.m` | Artificial DVL outages on the recorded log (with `../real_data/outage_benchmark.py`) |
+| `unobservable_directions.m` | Yaw and horizontal-translation directions for the optional observability constraint |
 
 ## How to run (MATLAB)
 
@@ -209,3 +210,79 @@ DVL dead reckoning over the same window, which uses the removed data.
   would be better for outages up to roughly 20 s. That is not measured: there is no powered log.
 - **The DVL carries the position estimate.** Fewer DVL dropouts (15 gaps > 1 s here, longest 49.5 s) is
   worth more than any filter change. A thrust-model aid (`plant_m/`) is the route for longer outages.
+
+## Improvements tested from the literature (2026-11-09)
+
+Papers in `../input/bibliography/` (PDFs in the local research library):
+- **Klein & Diamant 2015:** what a DVL + depth + IMU system can observe.
+- **Huang et al. 2010:** EKF overconfidence in unobservable directions.
+- **Or 2025:** how gating biases NIS.
+
+Scripts: `run_real_log` variants `eskf_noheading*`, `eskf_oc*`, `eskf_hdg*`, plus `../real_data/heading_check.py`
+(`results/heading_table.txt`). The VN-200's own magnetometer-aided yaw is used as the yaw reference. It is
+**not** ground truth (see 2).
+
+**1. Observability (Klein & Diamant): confirmed on real data.**
+- **Without the VN-200 yaw aid, yaw is not observable** from DVL, depth and gravity:
+  - The vertical gyro bias estimate stays at its start value (−0.001 °/s, against −0.023 °/s with the aid).
+  - Gyro-only yaw ends 21° from the VN-200 yaw after 21 min.
+- **Position effect is limited.** Against the references, RMS goes from 0.39 to 0.65 m (DVL dead reckoning:
+  0.35 → 0.68 m).
+
+**2. The VN-200 yaw itself is the weak link.**
+- Most of the 21° disagreement builds up while the vehicle is level (−13.3° of −21°), including single 10 s
+  windows with 5° jumps and only about 30° of rotation.
+- A gyro cannot be wrong by that much in 10 s: it would need a 0.5 °/s bias or a 17 % scale error. So the
+  magnetometer-aided VN-200 heading most likely jumps in the pool environment.
+
+**3. Observability constraint (after Huang et al.): no measurable effect here.**
+- **What it does** (`opts.oc`): projects the DVL, depth and zero-velocity Jacobians so that H N = 0 along yaw
+  and north/east translation. `test_gating` checks it: with an isotropic prior, an update no longer changes
+  the variance along N.
+- **What it changed on the log:** nothing beyond noise. Yaw, NIS and position are unchanged (RMS 0.39 /
+  0.38 m).
+- **Why:** worked out by hand, our DVL and depth Jacobians already satisfy H N ≈ 0, apart from an Earth-rate
+  term. Only the zero-velocity pseudo-measurement violates it.
+- **Not done:** the propagation-side constraint (first-estimates Jacobians or a modified Φ) is not
+  implemented.
+- **Retracted claim:** the yaw σ used here is √(nᵀ P n) with n = Rᵀ e_z. It changes whenever the vehicle
+  tilts, so counting "σ decreases" is **not** evidence of spurious information.
+
+**4. Heading-aid rate (correlated measurement): the change that helps.**
+- **The problem:** the VN-200 yaw is its own filter's output, so its errors are correlated over time. Fed in
+  at 10 Hz as if white, it makes the filter claim 0.07° of yaw uncertainty while sitting about 1° from that
+  same yaw.
+
+| Heading aid | Yaw σ at end | Yaw vs VN-200 RMS | Mean yaw NEES | RMS vs robot_localization | RMS vs DVL DR |
+|---|---|---|---|---|---|
+| 10 Hz, σ 1.3° (current) | 0.07° | 1.18° | 325 | 0.39 m | 0.35 m |
+| 1 Hz, σ 1.3° (`eskf_hdg1hz_zv`) | 0.15° | 1.58° | 110 | 0.34 m | 0.37 m |
+| **0.2 Hz, σ 3° (`eskf_hdg0p2hz_zv`)** | 0.49° | 2.70° | 34 | **0.33 m** | **0.33 m** |
+| none (`eskf_noheading_zv`) | 1.16° | 17.9° | 359 | 0.65 m | 0.68 m |
+
+- **Using the VN-200 yaw less often helps both ways:** overconfidence falls tenfold, and agreement with both
+  references improves.
+- **It is still not consistent** (NEES 34, against 1 for a consistent filter). A correlated heading error
+  cannot be tuned into white noise.
+- **The proper fixes:** a Gauss–Markov heading-error state, or a better heading source (a calibrated raw
+  magnetometer, or visual heading from pool features).
+- **Caveat:** both references also use the VN-200 orientation, so neither can fully judge yaw.
+- **A robust heading update** (NIS cap at 99 %, `eskf_oc_robusthdg_zv`) down-weights 179 samples and changes
+  nothing measurable.
+
+**5. Gated NIS (Or 2025): judge gated filters against gate-conditioned targets.**
+
+| Gate | Accepted-only target mean / median | 99 % gated ESKF, accepted only |
+|---|---|---|
+| DVL, 99 % (χ² 3 dof ≤ 11.34) | 2.894 / 2.339 | mean 3.22, median **1.76** |
+| DVL, 99.99 % | 2.998 / 2.366 | (loose gate) mean 3.61, median 1.97 |
+| depth / heading, 99 % (1 dof) | 0.925 / 0.444 | — |
+
+- **The accepted-only mean looks consistent; the median shows it is not.** The middle of the distribution is
+  too cautious and the tail is heavy, while 16 % of readings were thrown away.
+- **Our tuning is unaffected:** it used the median NIS of *all* readings, the unconditional statistic.
+
+**Recommendation:**
+- Use the VN-200 yaw at 0.2 Hz with σ 3° until a better heading source exists. Not yet made the default in
+  `config_real_log.m`: it needs confirming on a log with ground truth.
+- Log the raw magnetometer, so heading can be calibrated and modelled properly.

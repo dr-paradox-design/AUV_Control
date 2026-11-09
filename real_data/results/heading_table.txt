@@ -1,0 +1,38 @@
+Yaw of the ESKF minus the VN-200 yaw (the VN-200 uses its magnetometer; treated as reference).
+NEES_yaw = e^2 / sigma^2 per sample: about 1 when consistent; share outside 2 sigma about 5 %.
+
+eskf_ungated_zv      yaw error RMS  1.18 deg, final   0.37 deg, trend -0.011 deg/min | sigma at end  0.07 deg | mean NEES  325.08, outside 2 sigma  91.1 %
+                      t =    313 s: error   0.99 deg, sigma  0.06 deg
+                      t =    625 s: error   0.63 deg, sigma  0.06 deg
+                      t =    938 s: error   0.44 deg, sigma  0.06 deg
+                      t =   1250 s: error   0.37 deg, sigma  0.07 deg
+eskf_oc_zv           yaw error RMS  1.18 deg, final   0.37 deg, trend -0.011 deg/min | sigma at end  0.07 deg | mean NEES  325.12, outside 2 sigma  91.1 %
+                      t =    313 s: error   1.00 deg, sigma  0.06 deg
+                      t =    625 s: error   0.63 deg, sigma  0.06 deg
+                      t =    938 s: error   0.44 deg, sigma  0.06 deg
+                      t =   1250 s: error   0.37 deg, sigma  0.07 deg
+eskf_oc_robusthdg_zv yaw error RMS  1.20 deg, final   0.37 deg, trend -0.009 deg/min | sigma at end  0.07 deg | mean NEES  335.80, outside 2 sigma  90.9 %
+                      t =    313 s: error   1.06 deg, sigma  0.07 deg
+                      t =    625 s: error   0.63 deg, sigma  0.06 deg
+                      t =    938 s: error   0.44 deg, sigma  0.06 deg
+                      t =   1250 s: error   0.37 deg, sigma  0.07 deg
+eskf_hdg1hz_zv       yaw error RMS  1.58 deg, final  -0.65 deg, trend +0.015 deg/min | sigma at end  0.15 deg | mean NEES  110.25, outside 2 sigma  82.4 %
+                      t =    313 s: error   1.08 deg, sigma  0.15 deg
+                      t =    625 s: error   2.21 deg, sigma  0.15 deg
+                      t =    938 s: error  -0.01 deg, sigma  0.15 deg
+                      t =   1250 s: error  -0.65 deg, sigma  0.15 deg
+eskf_hdg0p2hz_zv     yaw error RMS  2.70 deg, final  -0.64 deg, trend +0.261 deg/min | sigma at end  0.49 deg | mean NEES   33.79, outside 2 sigma  76.1 %
+                      t =    313 s: error  -3.03 deg, sigma  0.45 deg
+                      t =    625 s: error   1.13 deg, sigma  0.48 deg
+                      t =    938 s: error   1.03 deg, sigma  0.50 deg
+                      t =   1250 s: error  -0.64 deg, sigma  0.49 deg
+eskf_noheading_zv    yaw error RMS 17.94 deg, final -21.17 deg, trend -0.580 deg/min | sigma at end  1.16 deg | mean NEES  358.50, outside 2 sigma  95.8 %
+                      t =    313 s: error -15.90 deg, sigma  0.87 deg
+                      t =    625 s: error -19.38 deg, sigma  0.86 deg
+                      t =    938 s: error -19.94 deg, sigma  1.14 deg
+                      t =   1250 s: error -21.17 deg, sigma  1.16 deg
+eskf_noheading_oc_zv yaw error RMS 18.43 deg, final -21.44 deg, trend -0.543 deg/min | sigma at end  1.16 deg | mean NEES  377.31, outside 2 sigma  96.0 %
+                      t =    313 s: error -16.83 deg, sigma  0.87 deg
+                      t =    625 s: error -19.84 deg, sigma  0.86 deg
+                      t =    938 s: error -20.30 deg, sigma  1.14 deg
+                      t =   1250 s: error -21.44 deg, sigma  1.16 deg

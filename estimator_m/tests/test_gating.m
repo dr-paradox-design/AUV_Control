@@ -1,6 +1,7 @@
 function test_gating()
-% TEST_GATING  The optional NIS gate in eskf_update and the truth-free mode of run_filter.
+% TEST_GATING  Gate, robust mode and observability constraint in eskf_update; truth-free run_filter.
 cfg = config_estimator();
+cfg.zero_vel.sigma = 0.1;      % only set in config_real_log
 x = make_state([1; 2; 3], [0.5; -0.2; 0.1], euler2q(0.1, -0.2, 1.0), zeros(3, 1), zeros(3, 1), 0);
 P = initial_covariance(cfg);
 w = [0.01; 0.02; -0.03];
@@ -28,6 +29,25 @@ assert(norm(x5.v - x.v) < norm(x6.v - x.v), 'robust update must move the state l
 assert(all(diag(P5) <= diag(P) + 1e-12), 'covariance must not grow in an update');
 fprintf('  robust: NIS %.0f capped to 11.34 (lambda %.0f); velocity step %.3f vs %.3f m/s plain\n', ...
         n5, l5, norm(x5.v - x.v), norm(x6.v - x.v));
+
+% observability constraint: with an isotropic prior P = s^2 I, an update leaves N' P N unchanged exactly
+% when H N = 0. With oc, dvl / depth / zero_vel must not reduce it; without oc, zero_vel (v ~= 0) does.
+xo = make_state([3; -2; 1], [0.4; 0.3; 0.05], euler2q(0.2, -0.1, 0.7), zeros(3, 1), zeros(3, 1), 0);
+Pi = 0.04 * eye(16);
+N = unobservable_directions(xo);
+cases = {'dvl', [0.3; 0.2; 0.1]; 'depth', 1.2; 'zero_vel', zeros(3, 1)};
+for i = 1:size(cases, 1)
+    [~, Po] = eskf_update(xo, Pi, cases{i, 1}, cases{i, 2}, w, cfg, Inf, Inf, true);
+    d = norm(N' * Po * N - N' * Pi * N);
+    assert(d < 1e-12, sprintf('%s with oc reduced variance along N by %.3e', cases{i, 1}, d));
+end
+[~, Pz] = eskf_update(xo, Pi, 'zero_vel', zeros(3, 1), w, cfg);
+dz = norm(N' * Pz * N - N' * Pi * N);
+assert(dz > 1e-4, 'plain zero_vel should carry spurious information along N');
+[~, Ph] = eskf_update(xo, Pi, 'heading', 0.5, w, cfg, Inf, Inf, true);
+[~, Ph0] = eskf_update(xo, Pi, 'heading', 0.5, w, cfg);
+assert(isequal(Ph, Ph0), 'oc must not change the heading update');
+fprintf('  observability constraint: no variance change along N with oc (plain zero_vel: %.1e)\n', dz);
 
 % truth-free run: no tr.p, so err and nees are NaN; state and covariance are still logged
 tr.dt = 0.01; tr.n = 50; tr.t = (0:tr.n)' * tr.dt;

@@ -7,12 +7,14 @@ function res = run_filter(tr, imu, meas, bd, cfg, filter_bias, x0, P0, log_every
 %                  opts.max_consecutive_rejects (default Inf): accept anyway after this many rejections
 %                  in a row, so the filter cannot lock itself out;
 %                  opts.robust.<sensor> = NIS cap: inflate R so the NIS of an outlier equals the cap
-%                  (default Inf, off). See eskf_update.
+%                  (default Inf, off); opts.oc = true: observability constraint on dvl, depth and
+%                  zero_vel Jacobians (default false). See eskf_update.
 if nargin < 9 || isempty(log_every), log_every = 10; end
 names = {'dvl', 'depth', 'gnss_pos', 'gnss_vel', 'heading', 'zero_vel'};
 if nargin < 10 || isempty(use), use = names; end
 if nargin < 11 || isempty(opts), opts = struct(); end
 if ~isfield(opts, 'max_consecutive_rejects'), opts.max_consecutive_rejects = Inf; end
+if ~isfield(opts, 'oc'), opts.oc = false; end          % observability constraint, see eskf_update
 has_truth = isfield(tr, 'p');
 
 % schedule: rows [sample index, sensor index, measurement index]
@@ -51,6 +53,7 @@ end
 nlog = floor(tr.n / log_every) + 1;
 res.t = zeros(nlog, 1); res.err = NaN(nlog, 16); res.sd = zeros(nlog, 16); res.nees = NaN(nlog, 1);
 res.x = zeros(nlog, 17);
+res.yaw_sd = zeros(nlog, 1);         % sigma of rotation about NED down: sqrt(n' P_thth n), n = R' e_z
 li = 0;
 
 for k = 1:tr.n + 1                   % sample index (1-based)
@@ -66,7 +69,7 @@ for k = 1:tr.n + 1                   % sample index (1-based)
         z = meas.(name)(sched(r, 3)).z;
         g = gate.(name);
         if consec.(name) >= opts.max_consecutive_rejects, g = Inf; end
-        [x, P, nv, ok, lam] = eskf_update(x, P, name, z, w_ib, cfg, g, robust.(name));
+        [x, P, nv, ok, lam] = eskf_update(x, P, name, z, w_ib, cfg, g, robust.(name), opts.oc);
         nis.(name)(sched(r, 3)) = nv;
         res.accepted.(name)(sched(r, 3)) = ok;
         if lam > 1, res.downweighted.(name) = res.downweighted.(name) + 1; end
@@ -83,6 +86,8 @@ for k = 1:tr.n + 1                   % sample index (1-based)
         res.t(li) = tr.t(k);
         res.sd(li, :) = sqrt(diag(P))';
         res.x(li, :) = [x.p', x.v', x.q, x.ba', x.bg', x.bd];
+        nz = q2R(x.q)' * [0; 0; 1];
+        res.yaw_sd(li) = sqrt(nz' * P(7:9, 7:9) * nz);
         if has_truth
             xt = make_state(tr.p(k, :), tr.v(k, :), tr.q(k, :), imu.ba(k, :), imu.bg(k, :), bd(k));
             e = state_ominus(xt, x);
