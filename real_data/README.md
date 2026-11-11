@@ -28,6 +28,8 @@ ESKF in `estimator_m/`. See `../decisions/ADR-001-localization-architecture.md` 
 | `compare_eskf.py` | ESKF variants vs robot_localization, variant E and DVL dead reckoning: `results/eskf_table.txt`, `results/eskf_comparison.png` |
 | `outage_benchmark.py` | Artificial DVL outages of 2–20 s; scores how well each filter bridges them: `results/outage_table_<L>s.txt` |
 | `heading_check.py` | ESKF yaw vs the VN-200 yaw and the filter's own yaw σ: `results/heading_table.txt` |
+| `paths.py` | Per-run folders (`REAL_DATA_RUN`) and per-run sensor geometry read from `/tf_static` |
+| `compare_run.py` | Any run: ESKF variants and the Python EKF vs every ROS estimator and DVL dead reckoning, per gap-free segment |
 | `requirements.txt` | Python packages |
 | `results/` | Committed outputs of the run below |
 
@@ -179,3 +181,67 @@ the VN-200 yaw as a heading aid. Full details, tuning and caveats are in `../est
 2. **Decide on DVL outlier handling with that reference.** Options: no gate, a loose gate (99.99 % with a
    cap of 3 gave 0.90 m), or a robust (heavy-tailed) DVL update.
 3. **Replace the "velocity ≈ 0" rule** with the thrust-model aid (Phase 4), and re-tune noise on a powered run.
+
+## Second log: tape test, 2026-11-11 (`tape_test_20261111_135132`)
+
+**Running any log:**
+
+```bash
+python real_data/extract.py <bag folder> --run <name>
+REAL_DATA_RUN=<name> python real_data/export_mat.py
+cd estimator_m && octave-cli --eval "setup_paths; run_real_log({'eskf_ungated_zv','eskf_accel30_zv'}, '<name>')"
+cd ../real_data && REAL_DATA_RUN=<name> python ekf_localization.py && REAL_DATA_RUN=<name> python compare_run.py
+```
+
+Without `--run` / `REAL_DATA_RUN`, the scripts use the original folders, which hold the 2026-11-05 log. Its
+results were checked unchanged after this work: the same exported file, and the same ESKF state to 0.
+
+`tape_test_20261111_133345` is 9.6 s long with no depth data, too short to evaluate.
+
+**What differs from the first log** (all of it handled by the code now):
+
+| Item | 2026-11-11 tape test |
+|---|---|
+| Length | 340.7 s |
+| **DVL mounting** | `/tf_static` rotates dvl_link **−135° about z**; the first log had none. Applied when the DVL velocity is rotated into body axes. DVL dead reckoning matches both ROS estimators to 0.53 / 0.57 m with the rotation, 3.7 m without |
+| **Recording gaps** | all topics stop at 96.7–106.0 s and 268.0–293.1 s. The ESKF restarts after each gap (`run_segments.m`) and keeps its biases; the Python EKF does not propagate through gaps longer than 0.5 s. Both ROS estimators resume about 0.5 m away, so the vehicle moved during the gaps |
+| Depth | `/pressure/depth` has no messages |
+| Thrusters | no thruster or arming topics |
+| Second ROS estimator | `/odometry/ekf` (22 Hz) next to `/odometry/filtered`. `/ekf/dvl_twist` is an exact copy of `/dvl/raw` |
+| IMU | 80 Hz with the two gaps (the 72 Hz average includes them). The frame check holds: 5 s gyro-only vs VN-200, median 0.33° |
+
+**Noise tuning does not carry over between runs.**
+- With the first log's ×20 accelerometer noise, DVL median NIS is 4.04 (target 2.37). ×30 gives 1.91, so
+  `eskf_accel30_zv` is the NIS-tuned variant for this run.
+- The DVL noise σ barely matters (0.05 → 0.12 m/s moves NIS only 4.04 → 3.95).
+- A DVL yaw misalignment of ±8° does not change NIS at all. Without a position reference it cannot be
+  calibrated: it only rotates the track.
+
+**Results** (`results/tape_test_20261111_135132/compare_table.txt`). RMS is per gap-free segment, each track
+re-aligned at its segment start:
+
+| Estimator | Path | vs robot_localization | vs /odometry/ekf | vs DVL DR | DVL NIS |
+|---|---|---|---|---|---|
+| ESKF ×20 (first-log tuning) | 23.1 m | 0.02 m | 0.02 m | 0.03 m | 4.04 |
+| **ESKF ×30 (NIS-tuned here)** | 23.1 m | 0.02 m | 0.02 m | 0.03 m | **1.91** |
+| ESKF, heading 0.2 Hz σ 3° | 23.1 m | 0.04 m | 0.03 m | 0.03 m | 4.04 |
+| ESKF, robust update | 23.0 m | 0.03 m | 0.03 m | 0.04 m | 4.04 (12 down-weighted) |
+| ESKF, 99 % gate | 25.9 m | 0.19 m | 0.19 m | 0.20 m | 25 % of DVL rejected |
+| ESKF, no heading aid | 23.2 m | 0.10 m | 0.10 m | 0.10 m | yaw 3.2° off the VN-200 |
+| ESKF, datasheet noise | 34.1 m | 0.60 m | 0.60 m | 0.58 m | 35.5 |
+| Python EKF E | 22.9 m | 0.02 m | 0.01 m | 0.02 m | — |
+
+- **Every DVL-based estimate agrees within 2–4 cm here.** That includes both ROS estimators, the ESKF, the
+  Python EKF and dead reckoning. The motion is gentle (roll −16 to 7°, pitch ±5°), and the DVL data within
+  each segment has almost no outliers.
+- **The first log's lessons repeat:** the 99 % gate still diverges, and datasheet noise is still far off.
+- **The heading-rate change** that helped on the first log makes no difference here.
+
+**The taped course** (from the tracks; the layout still needs confirming):
+- the second segment is a closed **rectangle of about 3.0 m (north-south) by 3.2–3.4 m (east-west, including
+  corner wiggles)**;
+- the third segment is a **straight line of 3.06 m** on every estimator.
+
+If the tape line is 3.00 m, all DVL-based estimates are about 2 % long, which is a DVL scale factor. If the
+rectangle was walked back to its start, every estimator's loop-closure error is 0.52–0.58 m. **These become
+real accuracy numbers once the tape layout is known.**

@@ -29,6 +29,7 @@ lever arms.
 | `config_real_log.m`, `load_real_log.m`, `run_real_log.m` | Recorded-data path: log-supported config, loader, variants (see "Running on recorded data") |
 | `run_outage_benchmark.m` | Artificial DVL outages on the recorded log (with `../real_data/outage_benchmark.py`) |
 | `unobservable_directions.m` | Yaw and horizontal-translation directions for the optional observability constraint |
+| `run_segments.m` | Runs the filter per gap-free segment when a recording has gaps (restart, biases carried over) |
 
 ## How to run (MATLAB)
 
@@ -286,3 +287,13 @@ Scripts: `run_real_log` variants `eskf_noheading*`, `eskf_oc*`, `eskf_hdg*`, plu
 - Use the VN-200 yaw at 0.2 Hz with σ 3° until a better heading source exists. Not yet made the default in
   `config_real_log.m`: it needs confirming on a log with ground truth.
 - Log the raw magnetometer, so heading can be calibrated and modelled properly.
+
+## Second log, 2026-11-11 tape test (see `../real_data/README.md`)
+
+- **The DVL is rotated −135° in this run.** The export rotates it into body axes, so `cfg.dvl.R_bd` stays the
+  identity.
+- **The recording has two gaps, handled by `run_segments.m`.** Through them the old export interpolated IMU
+  rates, which drove DVL NIS to 15.6 and zero-velocity NIS to 389.
+- **The NIS-tuned accelerometer noise is ×30 here, against ×20 on the first log:** `eskf_accel30_zv`.
+- **All DVL-based estimates agree within 2–4 cm.** The 99 % gate diverges again (0.19 m); datasheet noise gives
+  0.60 m.

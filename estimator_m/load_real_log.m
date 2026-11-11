@@ -48,6 +48,7 @@ end
 
 function s = to_struct(k, z)
 k = double(k(:));
+if isempty(k), s = struct('k', {}, 'z', {}); return; end    % e.g. a run without depth
 if isvector(z), z = z(:); end
 s = struct('k', num2cell(k), 'z', num2cell(z', 1)');
 end

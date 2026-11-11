@@ -21,23 +21,28 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation as Rot
 
-DATA = Path(__file__).resolve().parent / 'data'
-EXTRACTED = DATA / 'extracted'
-RUNS = DATA / 'runs'
+from paths import DATA, EXTRACTED, RESULTS, RUNS, static_tf
+
 G_WORLD = np.array([0.0, 0.0, 9.81])
-R_DVL_LEVER = np.array([-0.180, 0.0, -0.109])     # base_link -> dvl_link (/tf_static)
-R_PRESSURE_LEVER = np.array([-0.400, 0.0, 0.0])   # base_link -> pressure_link
+R_DVL_LEVER, R_DVL_BODY = static_tf('dvl_link')    # base_link -> dvl_link from this run's /tf_static
+R_PRESSURE_LEVER, _ = static_tf('pressure_link')   # base_link -> pressure_link
 CHI2_1DOF_99 = 6.63
 CHI2_3DOF_99 = 11.34
+IMU_GAP_S = 0.5     # longer silences are recording gaps (all topics stop); 2026-11-05 log has none
 
 
 def load():
+    """IMU, DVL (rotated from dvl_link into body axes), depth and /odometry/filtered tables."""
     def rd(name):
         return pd.read_parquet(f'{EXTRACTED}/{name}.parquet').sort_values('t_bag').reset_index(drop=True)
-    return rd('imu_data'), rd('dvl_raw'), rd('pressure_depth'), rd('odometry_filtered')
+    dvl = rd('dvl_raw')
+    dvl[['vx', 'vy', 'vz']] = dvl[['vx', 'vy', 'vz']].values @ R_DVL_BODY.T
+    return rd('imu_data'), dvl, rd('pressure_depth'), rd('odometry_filtered')
 
 
 def depth_noise_std(depth):
+    if len(depth) < 3:
+        return 0.080                                # no depth in this run; value unused
     return float(np.std(np.diff(depth['depth'].values)) / np.sqrt(2))
 
 
@@ -101,6 +106,12 @@ def run_ekf(imu, dvl, depth, *, estimate_bias=False, lever_arms=True, gating=Tru
         t = tt[k]
         dt = t - t_prev
         if legacy_timing and src[k] != 0:
+            t_prev = t
+            dt = 0.0
+        if dt > IMU_GAP_S:                      # recording gap: no IMU data, do not propagate through it
+            x[3:6] = 0.0
+            P[3:6, :] = 0.0; P[:, 3:6] = 0.0
+            P[3:6, 3:6] = np.eye(3) * 0.1 ** 2
             t_prev = t
             dt = 0.0
         if dt > 0:
@@ -183,6 +194,5 @@ if __name__ == '__main__':
             line += '; final accel bias (m/s^2) ' + str(df[['bax', 'bay', 'baz']].iloc[-1].round(3).to_dict())
         print(line)
         lines.append(line)
-    results = Path(__file__).resolve().parent / 'results'
-    results.mkdir(exist_ok=True)
-    (results / 'variant_diagnostics.txt').write_text('\n'.join(lines) + '\n')
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    (RESULTS / 'variant_diagnostics.txt').write_text('\n'.join(lines) + '\n')

@@ -1,4 +1,6 @@
-function run_real_log(variants)
+function run_real_log(variants, run)
+% run (optional): run name, data in real_data/data/<run>/ (from REAL_DATA_RUN=<run> python ...).
+% Omit it for the 2026-11-05 log in real_data/data/.
 % RUN_REAL_LOG  Run the ESKF on the recorded log and save results for real_data/compare_eskf.py.
 % Needs real_data/data/real_log.mat from real_data/export_mat.py.
 %   run_real_log                    % all variants
@@ -15,11 +17,13 @@ function run_real_log(variants)
 %   eskf_noheading_oc_zv  as eskf_noheading_zv, with the observability constraint (opts.oc)
 %   eskf_oc_zv            as eskf_ungated_zv, with the observability constraint
 %   eskf_oc_robusthdg_zv  as eskf_oc_zv, plus a robust heading update (NIS cap 6.63) against VN-200 yaw jumps
+%   eskf_accel30_zv       as eskf_ungated_zv with accelerometer noise x30 (NIS-tuned on the 2026-11-11 run)
 %   eskf_hdg1hz_zv        as eskf_ungated_zv, VN-200 yaw used at 1 Hz (sigma 1.3 deg)
 %   eskf_hdg0p2hz_zv      as eskf_ungated_zv, VN-200 yaw used at 0.2 Hz with sigma 3 deg (less trust in a
 %                         time-correlated, jumpy magnetometer heading)
 root = fileparts(fileparts(mfilename('fullpath')));
 data = fullfile(root, 'real_data', 'data');
+if nargin >= 2 && ~isempty(run), data = fullfile(data, run); end
 all_variants = {'eskf_datasheet_zv', 'eskf_ungated_zv', 'eskf_gated', 'eskf_gated_zv', 'eskf_loosegate_zv', ...
                 'eskf_robust_zv', 'eskf_noheading_zv', 'eskf_noheading_oc_zv', 'eskf_oc_zv', 'eskf_oc_robusthdg_zv', ...
                 'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv'};
@@ -39,6 +43,7 @@ for i = 1:numel(variants)
     cfg = tuned; if strcmp(v, 'eskf_datasheet_zv'), cfg = datasheet; end
     if strcmp(v, 'eskf_hdg1hz_zv'), cfg.heading.rate_hz = 1; end
     if strcmp(v, 'eskf_hdg0p2hz_zv'), cfg.heading.rate_hz = 0.2; cfg.heading.sigma = 3 * pi / 180; end
+    if strcmp(v, 'eskf_accel30_zv'), cfg.imu.accel_nd = 30 * config_estimator().imu.accel_nd; end
     use_zv = numel(v) > 3 && strcmp(v(end-2:end), '_zv');
     opts = gated;
     if strcmp(v, 'eskf_ungated_zv'), opts = struct(); end
@@ -49,10 +54,11 @@ for i = 1:numel(variants)
     if strcmp(v, 'eskf_noheading_oc_zv'), opts = struct('oc', true); use = {'dvl', 'depth', 'zero_vel'}; end
     if strcmp(v, 'eskf_oc_zv'), opts = struct('oc', true); end
     if strcmp(v, 'eskf_oc_robusthdg_zv'), opts = struct('oc', true); opts.robust.heading = 6.63; end
-    if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv'})), opts = struct(); end
+    if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv', 'eskf_accel30_zv'})), opts = struct(); end
     [tr, imu, meas, x0, P0, raw] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
     tic;
-    res = run_filter(tr, imu, meas, [], cfg, 'rw', x0, P0, log_every, use, opts);
+    gaps = zeros(0, 2); if isfield(raw, 'imu_gaps'), gaps = reshape(raw.imu_gaps, [], 2); end
+    res = run_segments(tr, imu, meas, cfg, 'rw', x0, P0, log_every, use, opts, gaps, raw.vn_euler_grid);
     el = toc;
     res.t_bag = raw.t0_bag + res.t;
     res.variant = v;
