@@ -1,0 +1,8 @@
+{
+ "sensors_20261105_130603": {
+  "dvl_link": {
+   "yaw_deg": -135.0,
+   "reason": "The log's /tf_static says dvl_link has no rotation, but the DVL was mounted rotated (reported by the team, 2026-11-11). dvl_mount_fit.py finds the best fit at -135 deg (residual 0.0763 vs 0.1166 m/s^2 at 0 deg); the 2026-11-11 log's /tf_static also gives -135 deg for the same mount."
+  }
+ }
+}

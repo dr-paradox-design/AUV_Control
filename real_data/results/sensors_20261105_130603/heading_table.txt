@@ -1,0 +1,18 @@
+Yaw of the ESKF minus the VN-200 yaw (the VN-200 uses its magnetometer; treated as reference).
+NEES_yaw = e^2 / sigma^2 per sample: about 1 when consistent; share outside 2 sigma about 5 %.
+
+eskf_ungated_zv      yaw error RMS  1.18 deg, final   0.37 deg, trend -0.011 deg/min | sigma at end  0.07 deg | mean NEES  325.04, outside 2 sigma  91.0 %
+                      t =    313 s: error   1.00 deg, sigma  0.06 deg
+                      t =    625 s: error   0.63 deg, sigma  0.06 deg
+                      t =    938 s: error   0.44 deg, sigma  0.06 deg
+                      t =   1250 s: error   0.37 deg, sigma  0.07 deg
+eskf_hdg0p2hz_zv     yaw error RMS  2.43 deg, final  -0.82 deg, trend +0.208 deg/min | sigma at end  0.50 deg | mean NEES   26.08, outside 2 sigma  71.7 %
+                      t =    313 s: error  -2.30 deg, sigma  0.47 deg
+                      t =    625 s: error   1.08 deg, sigma  0.48 deg
+                      t =    938 s: error   0.93 deg, sigma  0.51 deg
+                      t =   1250 s: error  -0.82 deg, sigma  0.50 deg
+eskf_noheading_zv    yaw error RMS  4.75 deg, final  -4.32 deg, trend -0.248 deg/min | sigma at end  1.62 deg | mean NEES   19.74, outside 2 sigma  69.4 %
+                      t =    313 s: error  -2.59 deg, sigma  1.40 deg
+                      t =    625 s: error  -5.63 deg, sigma  0.94 deg
+                      t =    938 s: error  -5.10 deg, sigma  1.29 deg
+                      t =   1250 s: error  -4.32 deg, sigma  1.62 deg

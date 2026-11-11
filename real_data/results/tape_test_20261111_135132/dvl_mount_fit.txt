@@ -1,0 +1,4 @@
+Run tape_test_20261111_135132: 2925 samples at 10 Hz used.
+/tf_static says DVL yaw -135 deg -> residual 0.0375 m/s^2
+best-fit DVL yaw          -131 deg -> residual 0.0373 m/s^2 (yaw 0: 0.1005)
+residual at other angles: -180: 0.0568, -135: 0.0375, -90: 0.0516, -45: 0.0792, +0: 0.1005, +45: 0.1092, +90: 0.1033, +135: 0.0840

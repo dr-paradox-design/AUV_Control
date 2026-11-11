@@ -297,3 +297,18 @@ Scripts: `run_real_log` variants `eskf_noheading*`, `eskf_oc*`, `eskf_hdg*`, plu
 - **The NIS-tuned accelerometer noise is ×30 here, against ×20 on the first log:** `eskf_accel30_zv`.
 - **All DVL-based estimates agree within 2–4 cm.** The 99 % gate diverges again (0.19 m); datasheet noise gives
   0.60 m.
+
+## Correction (2026-11-11): DVL mounting on the 2026-11-05 log
+
+**The finding:** the 2026-11-05 `/tf_static` gave the DVL 0° of rotation, but it was mounted at −135°. Confirmed
+by `../real_data/dvl_mount_fit.py`; corrected run `sensors_20261105_130603`. All results above for that log use
+the wrong rotation.
+
+**With the correct mounting:**
+- **The DVL innovation tail halves** (3.9 % beyond 99 %, against 7.4 %).
+- **The 99 % gate rejects 6.5 %, not 16 %,** and gets 0.33 m to DVL DR, not 0.91 m.
+- **Gyro-only yaw ends 4.3° from the VN-200,** not 21°.
+- **robot_localization is about 4 m from the corrected DVL track,** because it used the same wrong rotation.
+- **×20 accelerometer noise is still the best tested setting.**
+
+See `../real_data/README.md` for the table.

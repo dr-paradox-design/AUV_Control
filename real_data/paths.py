@@ -24,9 +24,16 @@ _DEFAULT_TF = {   # 2026-11-05 log, base_link -> child (FLU), used when a run ha
 }
 
 
+OVERRIDES = json.loads((HERE / 'mount_overrides.json').read_text()).get(RUN or '', {})
+
+
 def static_tf(child):
-    """(translation, rotation matrix) of base_link -> child from this run's /tf_static, in FLU."""
+    """(translation, rotation matrix) of base_link -> child from this run's /tf_static, in FLU.
+    A run listed in mount_overrides.json gets its corrected mounting yaw instead (lever arm kept)."""
     f = EXTRACTED / 'tf_static.json'
     tfs = json.loads(f.read_text()) if f.exists() else {}
     tf = tfs.get(child) or _DEFAULT_TF[child]
-    return np.array(tf['t']), Rot.from_quat(tf['q']).as_matrix()
+    R = Rot.from_quat(tf['q']).as_matrix()
+    if child in OVERRIDES:
+        R = Rot.from_euler('z', OVERRIDES[child]['yaw_deg'], degrees=True).as_matrix()
+    return np.array(tf['t']), R

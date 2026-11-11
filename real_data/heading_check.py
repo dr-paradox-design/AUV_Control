@@ -11,8 +11,7 @@ import numpy as np
 from scipy.io import loadmat
 from scipy.spatial.transform import Rotation as Rot
 
-HERE = Path(__file__).resolve().parent
-DATA, RESULTS = HERE / 'data', HERE / 'results'
+from paths import DATA, RESULTS
 VARIANTS = sys.argv[1:] or ['eskf_ungated_zv', 'eskf_oc_zv', 'eskf_oc_robusthdg_zv', 'eskf_hdg1hz_zv',
                             'eskf_hdg0p2hz_zv', 'eskf_noheading_zv', 'eskf_noheading_oc_zv']
 

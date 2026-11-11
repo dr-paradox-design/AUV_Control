@@ -20,7 +20,7 @@ from scipy.spatial.transform import Rotation as Rot
 from ekf_localization import EXTRACTED, RUNS, R_DVL_LEVER, load
 from paths import DATA, RESULTS, RUN
 
-ESKF = ['eskf_ungated_zv', 'eskf_accel30_zv', 'eskf_hdg0p2hz_zv', 'eskf_oc_zv', 'eskf_robust_zv',
+ESKF = ['eskf_ungated_zv', 'eskf_accel30_zv', 'eskf_robust_x5_zv', 'eskf_hdg0p2hz_zv', 'eskf_oc_zv', 'eskf_robust_zv',
         'eskf_gated_zv', 'eskf_noheading_zv', 'eskf_datasheet_zv']
 
 imu, dvl, _, _ = load()
@@ -76,16 +76,20 @@ if e.exists():
 
 
 def seg_rms(t, xy, rt, rxy):
-    """RMS of horizontal difference, each track re-aligned at every segment start."""
-    sq, path = [], 0.0
+    """RMS of horizontal difference, each track re-aligned at every segment start. Segments are the
+    gap-free stretches of the recording, further split where the reference itself goes silent > 1 s."""
+    sq = []
+    cuts = rt[np.r_[0, np.where(np.diff(rt) > 1.0)[0] + 1]]
     for a, b in segs:
-        m = (rt >= a) & (rt <= b)
-        if m.sum() < 10:
-            continue
-        tt = rt[m]
-        p = np.column_stack([np.interp(tt, t, xy[:, i]) for i in range(2)])
-        q = rxy[m]
-        sq.append(np.sum(((p - p[0]) - (q - q[0])) ** 2, axis=1))
+        bounds = np.r_[a, cuts[(cuts > a) & (cuts < b)], b]
+        for a2, b2 in zip(bounds[:-1], bounds[1:]):
+            m = (rt >= a2) & (rt < b2)
+            if m.sum() < 10:
+                continue
+            tt = rt[m]
+            p = np.column_stack([np.interp(tt, t, xy[:, i]) for i in range(2)])
+            q = rxy[m]
+            sq.append(np.sum(((p - p[0]) - (q - q[0])) ** 2, axis=1))
     return float(np.sqrt(np.mean(np.concatenate(sq))))
 
 
@@ -130,8 +134,10 @@ fig, axs = plt.subplots(1, len(segs), figsize=(6 * len(segs), 5.6))
 axs = np.atleast_1d(axs)
 style = {'robot_localization (/odometry/filtered)': ('tab:orange', '-'), '/odometry/ekf': ('tab:purple', '-'),
          'DVL dead reckoning': ('gray', '--'), 'eskf_accel30_zv': ('tab:blue', '-'), 'python_E': ('tab:green', '-')}
+main = next((n for n in ('eskf_accel30_zv', 'eskf_robust_x5_zv', 'eskf_ungated_zv') if n in est), None)
+style[main] = ('tab:blue', '-')
 for ax, (a, b) in zip(axs, segs):
-    for name, (t, xy) in list(refs.items()) + [(n, (est[n]['t'], est[n]['xy'])) for n in ('eskf_accel30_zv', 'python_E') if n in est]:
+    for name, (t, xy) in list(refs.items()) + [(n, (est[n]['t'], est[n]['xy'])) for n in (main, 'python_E') if n in est]:
         m = (t >= a) & (t <= b)
         if m.sum() < 2:
             continue

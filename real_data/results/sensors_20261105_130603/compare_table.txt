@@ -1,0 +1,15 @@
+Run: sensors_20261105_130603 (1250 s). Recording gaps (all topics stop): none.
+RMS: horizontal difference, every track re-aligned at the start of each gap-free segment.
+
+                                         path_m  RMS vs robot_localization  RMS vs DVL dead reckoning roll/pitch/yaw vs VN-200 (deg)  DVL median NIS
+estimator                                                                                                                                           
+eskf_ungated_zv                            79.3                       3.85                       0.17                 0.34/0.27/1.18            1.75
+eskf_robust_x5_zv                         246.8                      17.07                       9.02                 0.52/0.26/1.24            1.45
+eskf_hdg0p2hz_zv                           79.6                       3.81                       0.16                 0.50/0.27/2.43            1.74
+eskf_robust_zv                             82.9                       4.13                       0.29                 0.38/0.27/1.20            1.72
+eskf_gated_zv                              98.6                       4.19                       0.33                 0.45/0.27/1.28            1.73
+eskf_noheading_zv                          79.8                       3.80                       0.29                 0.49/0.27/4.75            1.74
+eskf_datasheet_zv                         240.3                       7.78                       2.11                 0.49/0.24/1.25            1.28
+python_E                                   77.0                       4.18                       0.25                            NaN             NaN
+robot_localization (/odometry/filtered)    87.0                        NaN                       3.88                            NaN             NaN
+DVL dead reckoning                         74.6                       4.30                        NaN                            NaN             NaN

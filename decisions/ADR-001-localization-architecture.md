@@ -182,6 +182,13 @@ Details: `estimator_m/README.md`, "Running on recorded data".
   - The VN-200 heading itself shows 5° jumps in 10 s windows: the weak link.
   - The observability constraint (Huang et al.) had no measurable effect.
   - Using the VN-200 yaw at 0.2 Hz with σ 3° improves agreement to 0.33 m and cuts yaw overconfidence tenfold.
+- **Correction (2026-11-11): the 2026-11-05 DVL was mounted at −135°, while that log's `/tf_static` said
+  0°.**
+  - `real_data/dvl_mount_fit.py` finds it from the data alone.
+  - robot_localization used the wrong rotation too, so it is about 4 m RMS off the corrected track. The earlier
+    agreement figures against it compared two wrong tracks.
+  - With the correction, DVL outliers halve and the gating spiral mostly goes away.
+  - On the 2026-11-11 tape test (correct `/tf_static`), all DVL-based estimates agree within 2–4 cm.
 - **robot_localization's two output gaps** happen while all of its inputs keep arriving. The first ends with
   a 2.4 m jump that the DVL-aided motion does not support; the second ends frozen.
 - **Still not decided:** accuracy. Both references use every DVL sample, so agreement favours ungated
@@ -211,3 +218,5 @@ Details: `estimator_m/README.md`, "Running on recorded data".
 11. [ ] Heading source: log the raw VN-200 magnetometer and calibrate it, or add visual heading. Model the
     remaining correlated heading error as a Gauss–Markov state. Until then, use the VN-200 yaw at 0.2 Hz with
     σ 3°, pending confirmation on a log with ground truth.
+12. [ ] Check every log's `/tf_static` against the data with `dvl_mount_fit.py` before using it, and fix the
+    vehicle's URDF/tf so robot_localization gets the right DVL rotation live.

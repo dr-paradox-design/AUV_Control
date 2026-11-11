@@ -30,6 +30,8 @@ ESKF in `estimator_m/`. See `../decisions/ADR-001-localization-architecture.md` 
 | `heading_check.py` | ESKF yaw vs the VN-200 yaw and the filter's own yaw σ: `results/heading_table.txt` |
 | `paths.py` | Per-run folders (`REAL_DATA_RUN`) and per-run sensor geometry read from `/tf_static` |
 | `compare_run.py` | Any run: ESKF variants and the Python EKF vs every ROS estimator and DVL dead reckoning, per gap-free segment |
+| `dvl_mount_fit.py` | Estimates the DVL mounting yaw from IMU vs DVL kinematics (no ground truth needed) |
+| `mount_overrides.json` | Corrected mountings for runs whose `/tf_static` is wrong, with the evidence |
 | `requirements.txt` | Python packages |
 | `results/` | Committed outputs of the run below |
 
@@ -245,3 +247,50 @@ re-aligned at its segment start:
 If the tape line is 3.00 m, all DVL-based estimates are about 2 % long, which is a DVL scale factor. If the
 rectangle was walked back to its start, every estimator's loop-closure error is 0.52–0.58 m. **These become
 real accuracy numbers once the tape layout is known.**
+
+## Correction: the DVL on the 2026-11-05 log was mounted at −135°, not 0° (2026-11-11)
+
+**Everything above about the 2026-11-05 log used the DVL rotation from its `/tf_static` (0°), and that was
+wrong.**
+- **How it came to light:** the team reported that the DVL was misaligned, and `dvl_mount_fit.py` confirms it.
+- **The method:** the IMU's linear acceleration must match the change in DVL velocity once the DVL is rotated
+  into body axes by the true angle.
+
+| Log | DVL yaw in `/tf_static` | Best fit | Residual: `/tf_static` → best fit |
+|---|---|---|---|
+| 2026-11-11 tape test (validation) | −135° | −131° | 0.0375 → 0.0373 m/s² |
+| **2026-11-05** | **0°** | **−135°** | **0.1166 → 0.0763 m/s²** |
+
+**How it's applied:**
+- The corrected log is processed as its own run, `sensors_20261105_130603`, through `mount_overrides.json`.
+- The original folders (`data/`, `results/`) keep the uncorrected analysis, so it stays reproducible.
+
+**What changes** (`results/sensors_20261105_130603/compare_table.txt`; RMS per gap-free segment):
+
+| | Uncorrected (0°) | Corrected (−135°) |
+|---|---|---|
+| ESKF ×20 vs DVL dead reckoning | 0.17 m | 0.17 m |
+| ESKF ×20 vs robot_localization | 0.35 m | **3.85 m** |
+| robot_localization vs DVL dead reckoning | 0.48 m | **4.30 m** |
+| DVL innovations beyond the 99 % χ² value (×20, ungated) | 7.4 % | **3.9 %** |
+| 99 % gate: DVL rejected / vs DVL DR | 16 % / 0.91 m | **6.5 % / 0.33 m** |
+| Gyro-only yaw vs VN-200 at the end | −21.2° | **−4.3°** |
+| Path length (ESKF / DVL DR / robot_localization) | 87.1 / 81.8 / 87.0 m | 79.3 / 74.6 / 87.0 m |
+
+**Revised conclusions for the 2026-11-05 log:**
+1. **robot_localization was wrong on this log.** It used the same wrong 0° rotation, so its track is about 4 m RMS
+   from the correctly rotated DVL. The earlier "0.39 m agreement" only showed that two estimators shared the same
+   error.
+2. **A large part of the "DVL outliers" was the mounting.** The extreme tail halves, and the gating spiral is much
+   weaker. A real tail remains (3.9 % against 1 %), consistent with the rough hand handling.
+3. **Noise tuning barely moves.** ×20 is still the best tested setting; ×5 with the robust update diverges (path
+   247 m), and datasheet noise still fails (2.1 m against DVL DR).
+4. **Heading: the long-term drift came from the mounting; the short VN-200 jumps did not.**
+   - Gyro-only yaw ends 4.3° from the VN-200, against 21° before. Most of the old drift was the wrong DVL
+     rotation pulling the filter's yaw.
+   - The short VN-200 jumps remain (largest 10 s change 5.6°; 9 windows over 2°).
+5. **Still uncorrected:** the outage benchmark, the Python variant table and the literature tests above were run
+   on the uncorrected log.
+
+**Lesson:** check `/tf_static` against the data. A mounting error is invisible when every estimator, including
+the vehicle's own, shares it. A 30-line kinematic fit finds it without any ground truth.
