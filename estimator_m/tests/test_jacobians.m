@@ -18,6 +18,18 @@ for i = 1:numel(names)
     fprintf('  %-9s H max error %.2e\n', names{i}, err);
 end
 
+% DVL mounted with a rotation (the real DVL: R_bd = Rz(+135 deg) in FRD, i.e. -135 deg in FLU)
+c = cosd(135); s = sind(135);
+cfg_r = cfg; cfg_r.dvl.R_bd = [c -s 0; s c 0; 0 0 1];
+[h_r, H_r] = eskf_meas('dvl', x, w_ib, cfg_r);
+Hn = num_jac(@(xx) meas_h('dvl', xx, w_meas - xx.bg, cfg_r), x, 1e-6);
+err = max(abs(H_r(:) - Hn(:)));
+assert(err < 1e-7 + 1e-5 * max(abs(Hn(:))), sprintf('rotated DVL Jacobian mismatch %.3e', err));
+cfg_i = cfg; cfg_i.dvl.R_bd = eye(3);
+h_i = eskf_meas('dvl', x, w_ib, cfg_i);
+assert(norm(h_r - cfg_r.dvl.R_bd' * h_i) < 1e-12, 'rotated DVL prediction must equal R_bd'' times the body-axes one');
+fprintf('  %-9s H max error %.2e (R_bd = Rz(135 deg)); h = R_bd'' h_body to %.1e\n', 'dvl rot', err, norm(h_r - cfg_r.dvl.R_bd' * h_i));
+
 % F is first order (Sola 269): mismatch is O(dt^2), dominated by the position
 % row's 0.5 R [a]x dt^2 term, and must shrink ~4x when dt halves.
 models = {'rw', 'gm'};

@@ -57,7 +57,7 @@ for i = 1:numel(variants)
     if strcmp(v, 'eskf_oc_zv'), opts = struct('oc', true); end
     if strcmp(v, 'eskf_oc_robusthdg_zv'), opts = struct('oc', true); opts.robust.heading = 6.63; end
     if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv', 'eskf_accel30_zv'})), opts = struct(); end
-    [tr, imu, meas, x0, P0, raw] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
+    [tr, imu, meas, x0, P0, raw, cfg] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
     tic;
     gaps = zeros(0, 2); if isfield(raw, 'imu_gaps'), gaps = reshape(raw.imu_gaps, [], 2); end
     res = run_segments(tr, imu, meas, cfg, 'rw', x0, P0, log_every, use, opts, gaps, raw.vn_euler_grid);

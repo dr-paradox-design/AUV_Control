@@ -35,5 +35,7 @@ def static_tf(child):
     tf = tfs.get(child) or _DEFAULT_TF[child]
     R = Rot.from_quat(tf['q']).as_matrix()
     if child in OVERRIDES:
-        R = Rot.from_euler('z', OVERRIDES[child]['yaw_deg'], degrees=True).as_matrix()
+        R = np.array(OVERRIDES[child]['R_base_dvl'], dtype=float)
+        assert np.allclose(R @ R.T, np.eye(3), atol=1e-9) and np.isclose(np.linalg.det(R), 1.0), 'not a rotation'
+        assert np.allclose(R, Rot.from_euler('z', OVERRIDES[child]['yaw_deg'], degrees=True).as_matrix(), atol=1e-9)
     return np.array(tf['t']), R

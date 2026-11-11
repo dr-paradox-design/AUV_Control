@@ -7,7 +7,8 @@ Conventions (match estimator_m):
 - body FRD, world NED; quaternion Hamilton [w x y z], body -> NED;
 - IMU as delta-angle and delta-velocity on a fixed grid at the run's IMU rate (rates interpolated at
   interval midpoints; through recording gaps this interpolation is a guess, so gaps are saved as imu_gaps);
-- DVL velocity rotated from dvl_link into body axes with the run's /tf_static, so the filter uses R_bd = I;
+- DVL velocity saved in its own frame (dvl_z_sensor) with the transformation matrix dvl_R_bd (body <- DVL,
+  FRD axes, from the run's /tf_static or mount_overrides.json), and also pre-rotated into body axes (dvl_z);
 - measurement k = 1-based index of the grid sample nearest the measurement time.
 The ROS log is body FLU / world ENU: FLU -> FRD is diag(1,-1,-1); ENU -> NED swaps x,y and negates z.
 """
@@ -57,8 +58,10 @@ def k_of(t):
 
 
 _, R_bd = static_tf('dvl_link')                                            # dvl_link axes in base_link (FLU)
+R_bd_frd = FLU_TO_FRD @ R_bd @ FLU_TO_FRD                                  # same rotation, FRD axes
 dvl_k = k_of(dvl['t_bag'].values)
-dvl_z = (dvl[['vx', 'vy', 'vz']].values @ R_bd.T) @ FLU_TO_FRD.T         # into body axes, then FRD
+dvl_z_sensor = dvl[['vx', 'vy', 'vz']].values @ FLU_TO_FRD.T             # DVL frame (FRD-type axes)
+dvl_z = dvl_z_sensor @ R_bd_frd.T                                          # same, rotated into body axes
 dep_k = k_of(depth['t_bag'].values) if len(depth) else np.zeros(0, int)
 dep_z = depth['depth'].values if len(depth) else np.zeros(0)               # positive down = NED z
 hd_t = np.arange(t0, t_imu[-1], HEADING_PERIOD)
@@ -78,6 +81,7 @@ savemat(OUT, {
     't0_bag': t0, 'dt': DT, 'n': n,
     'dtheta': dtheta, 'dvel': dvel,
     'dvl_k': dvl_k.astype(float), 'dvl_z': dvl_z,
+    'dvl_z_sensor': dvl_z_sensor, 'dvl_R_bd': R_bd_frd,                      # v_body = dvl_R_bd * v_dvl (FRD)
     'depth_k': dep_k.astype(float), 'depth_z': dep_z,
     'heading_k': hd_k.astype(float), 'heading_z': hd_z,
     'q0': q0, 'depth0': float(dep_z[0]) if len(dep_z) else 0.0,
@@ -86,6 +90,7 @@ savemat(OUT, {
 }, do_compression=True)
 print(f'n={n} steps of {DT:.5f} s ({1/DT:.0f} Hz, {n * DT:.1f} s); dvl {len(dvl_k)}, depth {len(dep_k)}, heading {len(hd_k)}')
 print(f'DVL rotation into body: {Rot.from_matrix(R_bd).as_euler("ZYX", degrees=True).round(1)} deg (z, y, x)')
+print('DVL transformation matrix R_bd (FRD, v_body = R_bd v_dvl):\n' + np.array2string(R_bd_frd, precision=4, suppress_small=True))
 print(f'IMU gaps > {GAP_S} s: {np.round(imu_gaps, 1).tolist()}')
 print(f'specific force at rest check: median a_z (FRD) = {np.median(a_frd[:, 2]):.3f} m/s^2 (expect about -9.8)')
 print(f'wrote {OUT}')

@@ -294,3 +294,25 @@ wrong.**
 
 **Lesson:** check `/tf_static` against the data. A mounting error is invisible when every estimator, including
 the vehicle's own, shares it. A 30-line kinematic fit finds it without any ground truth.
+
+### DVL transformation matrix (2026-11-11)
+
+**The DVL rotation is now an explicit matrix in the filter**, not a pre-rotation of the data:
+- `export_mat.py` saves the DVL readings in the DVL frame (`dvl_z_sensor`) together with the matrix `dvl_R_bd`
+  (body ← DVL, FRD axes).
+- `load_real_log.m` returns `cfg.dvl.R_bd = dvl_R_bd`, and the ESKF's DVL model is h = R_bdᵀ·(Rᵀ·v + ω×l).
+- The matrix comes from the run's `/tf_static`, or from `real_data/mount_overrides.json` when that is wrong.
+
+For the DVL mounted at −135° about z (in FLU), as on both logs:
+
+```
+R_base_dvl (FLU) = [ -0.7071   0.7071   0 ]     R_bd (FRD, used by the filter) = [ -0.7071  -0.7071   0 ]
+                   [ -0.7071  -0.7071   0 ]                                      [  0.7071  -0.7071   0 ]
+                   [  0        0        1 ]                                      [  0        0        1 ]
+```
+
+**Checks:**
+- `test_jacobians` checks the DVL Jacobian with this rotation (error 1.1e-10). It also checks that the rotated
+  prediction equals R_bdᵀ times the body-axes prediction.
+- Re-running every ESKF variant on the corrected 2026-11-05 log and on the tape test with the explicit matrix
+  reproduces the earlier results to floating-point precision (largest position difference 1.6e-11 m).

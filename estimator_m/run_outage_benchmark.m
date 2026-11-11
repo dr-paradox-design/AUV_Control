@@ -16,7 +16,7 @@ variants = {
   'eskf_robust_zv',  true,  robust
 };
 for i = 1:size(variants, 1)
-    [tr, imu, meas, x0, P0, raw] = load_real_log(fullfile(data, 'real_log.mat'), cfg, variants{i, 2}, w.windows);
+    [tr, imu, meas, x0, P0, raw, cfg] = load_real_log(fullfile(data, 'real_log.mat'), cfg, variants{i, 2}, w.windows);
     res = run_filter(tr, imu, meas, [], cfg, 'rw', x0, P0, 4, [], variants{i, 3});
     out.t_bag = raw.t0_bag + res.t;
     out.x = res.x(:, 1:6);

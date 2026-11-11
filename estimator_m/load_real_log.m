@@ -1,5 +1,8 @@
-function [tr, imu, meas, x0, P0, raw] = load_real_log(matfile, cfg, use_zero_vel, drop_dvl)
+function [tr, imu, meas, x0, P0, raw, cfg] = load_real_log(matfile, cfg, use_zero_vel, drop_dvl)
 % LOAD_REAL_LOG  Filter inputs from real_data/export_mat.py output (body FRD, world NED).
+% DVL: if the export carries the transformation matrix dvl_R_bd (v_body = R_bd v_dvl), the DVL
+% measurements stay in the DVL frame and the returned cfg has cfg.dvl.R_bd = dvl_R_bd, so the filter's
+% DVL model h = R_bd' (R' v + w x l) applies the rotation. Use the returned cfg with these measurements.
 % tr has t, dt, n only (no truth). x0 starts at the origin with the VN-200 attitude.
 % drop_dvl (optional, m x 2, seconds from the log start): DVL samples inside these windows are removed
 % before anything else, as artificial outages for benchmarking.
@@ -13,13 +16,19 @@ for i = 1:size(drop_dvl, 1)
 end
 raw.dvl_k = raw.dvl_k(keep);
 raw.dvl_z = raw.dvl_z(keep, :);
+if isfield(raw, 'dvl_z_sensor'), raw.dvl_z_sensor = raw.dvl_z_sensor(keep, :); end
 tr.dt = raw.dt; tr.n = double(raw.n);
 tr.t = (0:tr.n)' * tr.dt;
 
 imu.dtheta = raw.dtheta;
 imu.dvel = raw.dvel;
 
-meas.dvl = to_struct(raw.dvl_k, raw.dvl_z);
+if isfield(raw, 'dvl_R_bd')
+    cfg.dvl.R_bd = raw.dvl_R_bd;                         % explicit DVL -> body transformation matrix
+    meas.dvl = to_struct(raw.dvl_k, raw.dvl_z_sensor);   % measured in the DVL frame
+else
+    meas.dvl = to_struct(raw.dvl_k, raw.dvl_z);          % older exports: already in body axes
+end
 meas.depth = to_struct(raw.depth_k, raw.depth_z);
 hk = double(raw.heading_k(:)); hz = raw.heading_z(:);
 src_rate = (numel(hk) - 1) / ((hk(end) - hk(1)) * tr.dt);   % 10 Hz in the export (IMU stamps are bursty)
