@@ -1,0 +1,14 @@
+Run: sensors_20261105_130603. Innovation whiteness (autocorrelation) test.
+rho(l): time-averaged normalized autocorrelation of the normalized innovations at lag l;
+white innovations stay inside +-1.96/sqrt(K) at about 95 % of lags. "decorrelates" = first lag inside the band.
+
+== eskf_ungated_zv
+  dvl      N=  8914 spacing   125 ms | rho at lag 1 (0.12 s): +0.726, 2 (0.25 s): +0.611, 5 (0.62 s): +0.578, 10 (1.25 s): +0.611, 20 (2.50 s): +0.608, 50 (6.25 s): +0.596 | band ±0.021 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [-0.093, 0.045, 1.077] BIASED
+           per component at lag 1: +0.535, +0.531, +0.940
+  depth    N= 62485 spacing    25 ms | rho at lag 1 (0.02 s): +0.166, 2 (0.05 s): +0.088, 5 (0.12 s): +0.087, 10 (0.25 s): +0.078, 20 (0.50 s): +0.073, 50 (1.25 s): +0.061 | band ±0.008 | outside band  100 % of lags 1..400 | decorrelates at never within 10 s | mean [0.266] BIASED
+  heading  N= 12505 spacing   125 ms | rho at lag 1 (0.12 s): +0.915, 2 (0.25 s): +0.922, 5 (0.62 s): +0.917, 10 (1.25 s): +0.905, 20 (2.50 s): +0.880, 50 (6.25 s): +0.797 | band ±0.018 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [0.031] BIASED
+== eskf_white_zv
+  dvl      N=  8914 spacing   125 ms | rho at lag 1 (0.12 s): +0.276, 2 (0.25 s): +0.002, 5 (0.62 s): -0.008, 10 (1.25 s): +0.097, 20 (2.50 s): +0.091, 50 (6.25 s): +0.063 | band ±0.021 | outside band   96 % of lags 1..80 | decorrelates at lag 2 (0.25 s) | mean [0.046, -0.029, 0.053] BIASED
+           per component at lag 1: +0.267, +0.272, +0.332
+  depth    N= 62485 spacing    25 ms | rho at lag 1 (0.02 s): +0.169, 2 (0.05 s): +0.091, 5 (0.12 s): +0.089, 10 (0.25 s): +0.080, 20 (0.50 s): +0.071, 50 (1.25 s): +0.045 | band ±0.008 | outside band   70 % of lags 1..400 | decorrelates at lag 149 (3.72 s) | mean [0.002] ok
+  heading  N= 12505 spacing   125 ms | rho at lag 1 (0.12 s): +0.913, 2 (0.25 s): +0.919, 5 (0.62 s): +0.905, 10 (1.25 s): +0.883, 20 (2.50 s): +0.843, 50 (6.25 s): +0.773 | band ±0.018 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [0.028] BIASED

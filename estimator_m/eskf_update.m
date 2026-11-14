@@ -1,5 +1,7 @@
-function [x, P, nis, accepted, lambda] = eskf_update(x, P, name, z, w_ib, cfg, gate, robust_k2, oc)
+function [x, P, nis, accepted, lambda, nu] = eskf_update(x, P, name, z, w_ib, cfg, gate, robust_k2, oc)
 % ESKF_UPDATE  Joseph-form update, injection, reset G = I. Returns NIS (before any down-weighting).
+% nu: normalized innovation L \ r with S = L L' (before any down-weighting); white with unit covariance
+% when the filter's models are right, which is what the innovation autocorrelation test checks.
 % Optional gate: skip the update (accepted = false) when NIS > gate. Default Inf (no gating).
 % Optional robust_k2: when NIS > robust_k2, inflate the measurement noise by lambda > 1 so that the
 % NIS becomes robust_k2, then update. Outliers keep at most the pull of a borderline measurement and
@@ -20,6 +22,7 @@ if strcmp(name, 'heading'), r = wrap_pi(r); end
 HPH = H * P * H';
 S = HPH + Rm;
 nis = r' * (S \ r);
+nu = chol(0.5 * (S + S'), 'lower') \ r;
 lambda = 1;
 accepted = nis <= gate;
 if ~accepted, return; end

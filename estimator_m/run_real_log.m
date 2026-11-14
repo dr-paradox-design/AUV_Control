@@ -19,6 +19,10 @@ function run_real_log(variants, run)
 %   eskf_oc_robusthdg_zv  as eskf_oc_zv, plus a robust heading update (NIS cap 6.63) against VN-200 yaw jumps
 %   eskf_accel30_zv       as eskf_ungated_zv with accelerometer noise x30 (NIS-tuned on the 2026-11-11 run)
 %   eskf_robust_x5_zv     robust update with accelerometer noise x5 (corrected 2026-11-05 DVL mounting)
+%   eskf_babig_zv         as eskf_ungated_zv, initial accelerometer-bias sigma 0.2 m/s^2 (whiteness test fix)
+%   eskf_accel30_babig_zv as eskf_accel30_zv, initial accelerometer-bias sigma 0.2 m/s^2
+%   eskf_white_zv         re-tuned after the whiteness test: accelerometer-bias sigma0 0.2 m/s^2,
+%                         accelerometer noise x10, DVL sigma 0.015 m/s
 %   eskf_hdg1hz_zv        as eskf_ungated_zv, VN-200 yaw used at 1 Hz (sigma 1.3 deg)
 %   eskf_hdg0p2hz_zv      as eskf_ungated_zv, VN-200 yaw used at 0.2 Hz with sigma 3 deg (less trust in a
 %                         time-correlated, jumpy magnetometer heading)
@@ -44,7 +48,8 @@ for i = 1:numel(variants)
     cfg = tuned; if strcmp(v, 'eskf_datasheet_zv'), cfg = datasheet; end
     if strcmp(v, 'eskf_hdg1hz_zv'), cfg.heading.rate_hz = 1; end
     if strcmp(v, 'eskf_hdg0p2hz_zv'), cfg.heading.rate_hz = 0.2; cfg.heading.sigma = 3 * pi / 180; end
-    if strcmp(v, 'eskf_accel30_zv'), cfg.imu.accel_nd = 30 * config_estimator().imu.accel_nd; end
+    if any(strcmp(v, {'eskf_accel30_zv', 'eskf_accel30_babig_zv'})), cfg.imu.accel_nd = 30 * config_estimator().imu.accel_nd; end
+    if strcmp(v, 'eskf_white_zv'), cfg.imu.accel_nd = 10 * config_estimator().imu.accel_nd; cfg.dvl.sigma = 0.015; end
     if strcmp(v, 'eskf_robust_x5_zv'), cfg.imu.accel_nd = 5 * config_estimator().imu.accel_nd; end
     use_zv = numel(v) > 3 && strcmp(v(end-2:end), '_zv');
     opts = gated;
@@ -56,8 +61,12 @@ for i = 1:numel(variants)
     if strcmp(v, 'eskf_noheading_oc_zv'), opts = struct('oc', true); use = {'dvl', 'depth', 'zero_vel'}; end
     if strcmp(v, 'eskf_oc_zv'), opts = struct('oc', true); end
     if strcmp(v, 'eskf_oc_robusthdg_zv'), opts = struct('oc', true); opts.robust.heading = 6.63; end
-    if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv', 'eskf_accel30_zv'})), opts = struct(); end
+    if any(strcmp(v, {'eskf_hdg1hz_zv', 'eskf_hdg0p2hz_zv', 'eskf_accel30_zv', 'eskf_babig_zv', ...
+                      'eskf_accel30_babig_zv', 'eskf_white_zv'})), opts = struct(); end
     [tr, imu, meas, x0, P0, raw, cfg] = load_real_log(fullfile(data, 'real_log.mat'), cfg, use_zv);
+    if any(strcmp(v, {'eskf_babig_zv', 'eskf_accel30_babig_zv', 'eskf_white_zv'}))
+        P0(10:12, 10:12) = 0.2^2 * eye(3);    % turn-on accelerometer bias unknown, not the in-run 0.0004 m/s^2
+    end
     tic;
     gaps = zeros(0, 2); if isfield(raw, 'imu_gaps'), gaps = reshape(raw.imu_gaps, [], 2); end
     res = run_segments(tr, imu, meas, cfg, 'rw', x0, P0, log_every, use, opts, gaps, raw.vn_euler_grid);

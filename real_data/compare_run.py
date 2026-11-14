@@ -20,7 +20,7 @@ from scipy.spatial.transform import Rotation as Rot
 from ekf_localization import EXTRACTED, RUNS, R_DVL_LEVER, load
 from paths import DATA, RESULTS, RUN
 
-ESKF = ['eskf_ungated_zv', 'eskf_accel30_zv', 'eskf_robust_x5_zv', 'eskf_hdg0p2hz_zv', 'eskf_oc_zv', 'eskf_robust_zv',
+ESKF = ['eskf_white_zv', 'eskf_babig_zv', 'eskf_ungated_zv', 'eskf_accel30_zv', 'eskf_robust_x5_zv', 'eskf_hdg0p2hz_zv', 'eskf_oc_zv', 'eskf_robust_zv',
         'eskf_gated_zv', 'eskf_noheading_zv', 'eskf_datasheet_zv']
 
 imu, dvl, _, _ = load()
@@ -134,7 +134,7 @@ fig, axs = plt.subplots(1, len(segs), figsize=(6 * len(segs), 5.6))
 axs = np.atleast_1d(axs)
 style = {'robot_localization (/odometry/filtered)': ('tab:orange', '-'), '/odometry/ekf': ('tab:purple', '-'),
          'DVL dead reckoning': ('gray', '--'), 'eskf_accel30_zv': ('tab:blue', '-'), 'python_E': ('tab:green', '-')}
-main = next((n for n in ('eskf_accel30_zv', 'eskf_robust_x5_zv', 'eskf_ungated_zv') if n in est), None)
+main = next((n for n in ('eskf_white_zv', 'eskf_accel30_zv', 'eskf_ungated_zv') if n in est), None)
 style[main] = ('tab:blue', '-')
 for ax, (a, b) in zip(axs, segs):
     for name, (t, xy) in list(refs.items()) + [(n, (est[n]['t'], est[n]['xy'])) for n in (main, 'python_E') if n in est]:

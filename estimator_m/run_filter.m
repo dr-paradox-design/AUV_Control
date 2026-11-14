@@ -41,14 +41,19 @@ end
 Q = eskf_Q(tr.dt, cfg, filter_bias);
 x = x0; P = P0; w_ib = zeros(3, 1);
 nis = struct();
+dims = struct('dvl', 3, 'depth', 1, 'gnss_pos', 3, 'gnss_vel', 3, 'heading', 1, 'zero_vel', 3);
 for s = 1:numel(names)
     if isfield(meas, names{s}) && any(strcmp(use, names{s}))
-        nis.(names{s}) = zeros(1, numel(meas.(names{s})));
-        res.accepted.(names{s}) = true(1, numel(meas.(names{s})));
+        m = numel(meas.(names{s}));
+        nis.(names{s}) = zeros(1, m);
+        res.accepted.(names{s}) = true(1, m);
     else
+        m = 0;
         nis.(names{s}) = [];
         res.accepted.(names{s}) = true(1, 0);
     end
+    res.innov.(names{s}) = NaN(m, dims.(names{s}));   % normalized innovations, for the whiteness test
+    res.innov_t.(names{s}) = NaN(m, 1);               % their times (s)
 end
 nlog = floor(tr.n / log_every) + 1;
 res.t = zeros(nlog, 1); res.err = NaN(nlog, 16); res.sd = zeros(nlog, 16); res.nees = NaN(nlog, 1);
@@ -69,8 +74,10 @@ for k = 1:tr.n + 1                   % sample index (1-based)
         z = meas.(name)(sched(r, 3)).z;
         g = gate.(name);
         if consec.(name) >= opts.max_consecutive_rejects, g = Inf; end
-        [x, P, nv, ok, lam] = eskf_update(x, P, name, z, w_ib, cfg, g, robust.(name), opts.oc);
+        [x, P, nv, ok, lam, nu] = eskf_update(x, P, name, z, w_ib, cfg, g, robust.(name), opts.oc);
         nis.(name)(sched(r, 3)) = nv;
+        res.innov.(name)(sched(r, 3), :) = nu';
+        res.innov_t.(name)(sched(r, 3)) = tr.t(k);
         res.accepted.(name)(sched(r, 3)) = ok;
         if lam > 1, res.downweighted.(name) = res.downweighted.(name) + 1; end
         if ok

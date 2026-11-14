@@ -33,6 +33,7 @@ for s = 1:numel(ends)
     end
     r = run_filter(seg, si, sm, [], cfg, filter_bias, x, P0, log_every, use, opts);
     r.t = r.t + (k1 - 1) * tr.dt;
+    for f = fieldnames(r.innov_t)', r.innov_t.(f{1}) = r.innov_t.(f{1}) + (k1 - 1) * tr.dt; end
     last = r.x(end, :);
     x = make_state(last(1:3), last(4:6), last(7:10), last(11:13), last(14:16), last(17));
     out = [out, r]; %#ok<AGROW>
@@ -47,6 +48,8 @@ for i = 2:numel(out)
         res.accepted.(f{1}) = [res.accepted.(f{1}), out(i).accepted.(f{1})];
         res.rejected.(f{1}) = res.rejected.(f{1}) + out(i).rejected.(f{1});
         res.downweighted.(f{1}) = res.downweighted.(f{1}) + out(i).downweighted.(f{1});
+        res.innov.(f{1}) = [res.innov.(f{1}); out(i).innov.(f{1})];
+        res.innov_t.(f{1}) = [res.innov_t.(f{1}); out(i).innov_t.(f{1})];
     end
 end
 res.P_end = out(end).P_end;

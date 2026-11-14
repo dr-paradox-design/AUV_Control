@@ -1,0 +1,12 @@
+Run: tape_test_20261111_135132. Innovation whiteness (autocorrelation) test.
+rho(l): time-averaged normalized autocorrelation of the normalized innovations at lag l;
+white innovations stay inside +-1.96/sqrt(K) at about 95 % of lags. "decorrelates" = first lag inside the band.
+
+== eskf_ungated_zv
+  dvl      N=  2303 spacing   125 ms | rho at lag 1 (0.12 s): +0.980, 2 (0.25 s): +0.964, 5 (0.62 s): +0.941, 10 (1.25 s): +0.956, 20 (2.50 s): +0.953, 50 (6.25 s): +0.952 | band ±0.042 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [-0.051, 0.025, 1.964] BIASED
+           per component at lag 1: +0.645, +0.726, +0.997
+  heading  N=  3064 spacing   125 ms | rho at lag 1 (0.12 s): +0.965, 2 (0.25 s): +0.965, 5 (0.62 s): +0.957, 10 (1.25 s): +0.939, 20 (2.50 s): +0.894, 50 (6.25 s): +0.747 | band ±0.035 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [-0.132] BIASED
+== eskf_white_zv
+  dvl      N=  2303 spacing   125 ms | rho at lag 1 (0.12 s): +0.548, 2 (0.25 s): +0.210, 5 (0.62 s): -0.215, 10 (1.25 s): +0.158, 20 (2.50 s): +0.087, 50 (6.25 s): +0.054 | band ±0.042 | outside band   50 % of lags 1..80 | decorrelates at lag 14 (1.75 s) | mean [-0.042, 0.033, 0.011] BIASED
+           per component at lag 1: +0.477, +0.581, +0.639
+  heading  N=  3064 spacing   125 ms | rho at lag 1 (0.12 s): +0.965, 2 (0.25 s): +0.966, 5 (0.62 s): +0.957, 10 (1.25 s): +0.939, 20 (2.50 s): +0.893, 50 (6.25 s): +0.747 | band ±0.035 | outside band  100 % of lags 1..80 | decorrelates at never within 10 s | mean [-0.132] BIASED

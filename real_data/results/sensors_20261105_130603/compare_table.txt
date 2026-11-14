@@ -3,6 +3,8 @@ RMS: horizontal difference, every track re-aligned at the start of each gap-free
 
                                          path_m  RMS vs robot_localization  RMS vs DVL dead reckoning roll/pitch/yaw vs VN-200 (deg)  DVL median NIS
 estimator                                                                                                                                           
+eskf_white_zv                              83.1                       3.77                       0.14                 0.54/0.24/1.18            1.65
+eskf_babig_zv                              78.7                       3.94                       0.14                 0.50/0.26/1.17            0.37
 eskf_ungated_zv                            79.3                       3.85                       0.17                 0.34/0.27/1.18            1.75
 eskf_robust_x5_zv                         246.8                      17.07                       9.02                 0.52/0.26/1.24            1.45
 eskf_hdg0p2hz_zv                           79.6                       3.81                       0.16                 0.50/0.27/2.43            1.74

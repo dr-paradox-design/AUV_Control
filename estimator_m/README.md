@@ -334,3 +334,61 @@ R_base_dvl (FLU) = [ -0.7071   0.7071   0 ]     R_bd (FRD, used by the filter) =
   prediction equals R_bdᵀ times the body-axes prediction.
 - Re-running every ESKF variant on the corrected 2026-11-05 log and on the tape test with the explicit matrix
   reproduces the earlier results to floating-point precision (largest position difference 1.6e-11 m).
+
+## Innovation autocorrelation (whiteness) test (2026-11-14)
+
+**What the test checks.** A correctly modelled Kalman filter has **white** innovations: uncorrelated from one
+measurement to the next (Bar-Shalom, Li & Kirubarajan 2001). NIS only checks their size; this checks their
+time structure.
+
+**How it's done:**
+- The ESKF now saves normalized innovations ν = L⁻¹·r (S = L·Lᵀ) with their times (`res.innov`, `res.innov_t`).
+- `real_data/whiteness_test.py` computes the time-averaged normalized autocorrelation ρ(l) over pairs inside
+  each continuous stretch, against the white-noise band ±1.96/√K. It also runs the mean test.
+- Outputs: `results/<run>/whiteness_table.txt` and `whiteness_acf.png`.
+
+**What the test found** (old tuning: accelerometer noise ×20–30, DVL σ 0.05 m/s):
+
+| Sensor | Lag-1 ρ | ρ at 6 s | Mean (white needs ≈ 0) | Cause |
+|---|---|---|---|---|
+| DVL vertical | 0.94 / 0.99 | ≈ 0.95 | **+1.1σ / +1.3–2.0σ** | accelerometer bias not learned (below) |
+| DVL horizontal | 0.53–0.73 | ≈ 0.6 | ≈ 0 | white-noise acceleration model vs smooth real motion |
+| Heading (VN-200 yaw) | 0.92–0.97 | ≈ 0.8 | small | the VN-200 yaw error is strongly time-correlated |
+| Depth (first log) | 0.17 | 0.06 | +0.27σ | mild |
+
+(Values given as first log / tape test.)
+
+**Cause 1: the accelerometer bias could not be learned.**
+- **The evidence:** the accelerometer reads gravity as 9.90–9.93 m/s². No place on Earth exceeds 9.83, so there
+  is a vertical bias or scale error.
+- **Why the filter missed it:** its bias state started with the datasheet's *in-run stability* (0.0004 m/s²) as
+  its uncertainty, far below a real unit's turn-on bias, so it could barely move.
+- **The fix** (`eskf_babig_zv`): a 0.2 m/s² starting uncertainty. Both logs then estimate the **same vertical
+  bias (−0.14 and −0.16 m/s²)**, and the vertical DVL innovation mean drops to +0.03σ / +0.002σ.
+
+**Cause 1 also changes the noise tuning.** With the bias learned, the ×20–30 accelerometer noise turns out to
+have been compensating for it. A two-parameter re-tune (accelerometer noise, DVL σ; NIS and lag-1 ρ) gives
+`eskf_white_zv`: bias σ₀ 0.2 m/s², accelerometer noise **×10**, DVL σ **0.015 m/s**.
+
+| | First log (corrected mounting): old → re-tuned | Tape test: old → re-tuned |
+|---|---|---|
+| DVL ρ at lags 1 / 2 / 5 | 0.73 / 0.61 / 0.58 → **0.28 / 0.00 / −0.01** | 0.98 / 0.96 / 0.94 → **0.55 / 0.21 / −0.22** |
+| DVL ρ at 6 s | 0.60 → **0.06** | 0.95 → **0.05** |
+| DVL lags outside the white band | 100 % → 96 % (small values, large N) | 100 % → **50 %** |
+| DVL median NIS (target 2.37) | 1.75 → 1.65 | 1.91 → 0.83 |
+| RMS vs DVL dead reckoning | 0.17 → **0.14 m** | 0.03 → 0.03 m |
+
+**Still not white:**
+- **Heading** (ρ ≈ 0.9 at every lag up to 10 s). It needs a Gauss–Markov heading-error state, or a better heading
+  source.
+- **DVL at lag 1** (0.28 / 0.55), with an oscillation on the tape test. The constant-velocity, white-acceleration
+  model can't follow smooth real motion; a correlated-acceleration state or the `plant_m` dynamics would.
+- **Depth,** mildly (ρ 0.17).
+- **The first log's heavy tail** (16 % beyond 99 % with σ 0.015). The robust update suits that log.
+
+**Open:** on the tape test the filter estimates an x accelerometer bias of 0.12 m/s² (first log ≈ 0). It may be
+absorbing the remaining DVL misalignment (fit −131° vs `/tf_static` −135°).
+
+**Revision to an earlier headline:** "the datasheet noise was 20× too optimistic" was mostly the unmodelled
+accelerometer bias, plus the DVL mounting error on the first log. With both fixed, ×10 with a tighter DVL σ fits
+better, and the innovations are far closer to white.
